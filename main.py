@@ -1,6 +1,6 @@
 import pygame
 import sys
-from room import RoomObject, InteractableRoomObject, Room
+from room import RoomObject, Room
 from utils import load_image
 
 
@@ -27,7 +27,7 @@ class Game:
         # Добавление тестовых объектов
         s = pygame.transform.scale(load_image('h.jpg'), (200, 200))
 
-        a = InteractableRoomObject(s, (100, 100))
+        a = RoomObject(s, (100, 100))
         a.click_hook = lambda obj, pos: print("тулуз нажат !", pos)
 
         b = RoomObject(s, (200, 100))

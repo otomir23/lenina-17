@@ -31,14 +31,15 @@ class Room:
         arrow_image = pygame.transform.scale(arrow_image, (32, 32))
 
         # Создание стрелочки поворота против часовой стрелки
-        left_arrow = InteractableRoomObject(arrow_image, (30, 360))
+        left_arrow = RoomObject(arrow_image, (30, 360))
         left_arrow.click_hook = lambda *_: self.rotate(-1)
-        self.add_objects(left_arrow)
 
         # Создание стрелочки поворота по часовой стрелке
-        right_arrow = InteractableRoomObject(pygame.transform.flip(arrow_image, True, False), (1250, 360))
+        right_arrow = RoomObject(pygame.transform.flip(arrow_image, True, False), (1250, 360))
         right_arrow.click_hook = lambda *_: self.rotate(1)
-        self.add_objects(right_arrow)
+
+        # Добавление стрелочек в оверлей
+        self.add_objects(left_arrow, right_arrow)
 
         # Текущая стена, к которой повёрнут игрок
         self.current_wall = 0
@@ -77,8 +78,8 @@ class Room:
 
         # Проходим по всем объектам на текущей стене и оверлеях
         for obj in [*self.walls[self.current_wall], *self.overlays]:
-            # Если объект - объект, с которым можно взаимодействовать и клик был по нему
-            if isinstance(obj, InteractableRoomObject) and obj.rect.collidepoint(pos):
+            # Проверяем, находится ли позиция клика внутри объекта
+            if obj.rect.collidepoint(pos):
                 # Вызываем обработчик клика
                 obj.click(pos)
                 break
@@ -109,7 +110,9 @@ class RoomObject(Sprite):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
+        self.storage = {}
         self.update_hook = None
+        self.click_hook = None
 
     def draw(self, surface: pygame.Surface):
         """Отрисовка объекта
@@ -125,20 +128,6 @@ class RoomObject(Sprite):
 
         if self.update_hook is not None:
             self.update_hook(self, delta_time)
-
-
-class InteractableRoomObject(RoomObject):
-    """Объект, с которым можно взаимодействовать"""
-
-    def __init__(self, image: pygame.Surface, pos: tuple[int, int]):
-        """Создание объекта
-
-        :param image: изображение объекта
-        :param pos: позиция объекта"""
-
-        super().__init__(image, pos)
-        self.click_hook = None
-        self.storage = {}
 
     def click(self, pos: tuple[int, int]):
         """Функция, которая инициирует обработчик клика по объекту"""
