@@ -1,5 +1,7 @@
 import pygame
 import sys
+from room import RoomObject, InteractableRoomObject, Room
+from utils import load_image
 
 
 class Game:
@@ -19,6 +21,26 @@ class Game:
         self.clock = pygame.time.Clock()
         self.delta_time = 0
 
+        # Создание комнаты
+        self.room = Room()
+
+        # Добавление тестовых объектов
+        s = pygame.transform.scale(load_image('h.jpg'), (200, 200))
+
+        a = InteractableRoomObject(s, (100, 100))
+        a.click_hook = lambda obj, pos: print("тулуз нажат !", pos)
+
+        b = RoomObject(s, (200, 100))
+        b.update_hook = lambda obj, dt: print("тулуз на экране !", int(1 / dt), "FPS")
+
+        c = RoomObject(s, (300, 100))
+        d = RoomObject(s, (400, 100))
+
+        self.room.add_objects(a, wall=0)
+        self.room.add_objects(b, wall=1)
+        self.room.add_objects(c, wall=2)
+        self.room.add_objects(d, wall=3)
+
     def run(self):
         """Основной игровой цикл"""
 
@@ -36,24 +58,28 @@ class Game:
         """Обработка событий"""
 
         for event in pygame.event.get():
+            # Выход из игры
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            # Нажатие на кнопку мыши
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.room.click(event.pos)
 
     def update(self):
         """Обновление состояния игры"""
 
-        # Пока пусто, только вывод FPS
-        print(int(1 / self.delta_time))
-
-        # В этом методе будут вызываться методы обновления всех объектов игры
-        # Это позволит разделить логику обновления и отрисовки
+        # Обновляем текущую комнату
+        self.room.update(self.delta_time)
 
     def draw(self):
         """Отрисовка игры"""
 
         # Заполнение экрана черным цветом
         self.screen.fill((0, 0, 0))
+
+        # Отрисовываем текущую комнату
+        self.room.draw(self.screen)
 
         # Обновление экрана
         pygame.display.flip()
