@@ -26,6 +26,14 @@ class Room:
         )
         self.overlays = Group()
 
+        # Загрузка фонов для каждой стены
+        self.backgrounds = (
+            load_image("backgrounds/wall_0.png"),
+            load_image("backgrounds/wall_1.png"),
+            load_image("backgrounds/wall_2.png"),
+            load_image("backgrounds/wall_3.png")
+        )
+
         # Загрузка иконки стрелочки, которая используется для переключения стен
         arrow_image = load_image("left_arrow.png")
         arrow_image = pygame.transform.scale(arrow_image, (32, 32))
@@ -57,6 +65,7 @@ class Room:
 
         :param screen: экран, на котором отрисовывается комната"""
 
+        screen.blit(self.backgrounds[self.current_wall], (0, 0))
         self.walls[self.current_wall].draw(screen)
         self.overlays.draw(screen)
 
