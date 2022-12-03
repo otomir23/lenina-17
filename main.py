@@ -12,8 +12,8 @@ class Game:
         pygame.init()
 
         # Создание окна
-        self.screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("Unnamed Room Escape Game")
+        self.screen = pygame.display.set_mode((1280, 720))
+        pygame.display.set_caption("Безымянная игра")
 
         # Создание часов
         self.clock = pygame.time.Clock()
