@@ -1,6 +1,8 @@
 from __future__ import annotations
 import pygame
 from pygame.sprite import Sprite, Group
+
+from inventory import Inventory
 from utils import load_image
 
 
@@ -34,20 +36,8 @@ class Room:
             load_image("backgrounds/wall_3.png")
         )
 
-        # Загрузка иконки стрелочки, которая используется для переключения стен
-        arrow_image = load_image("left_arrow.png")
-        arrow_image = pygame.transform.scale(arrow_image, (32, 32))
-
-        # Создание стрелочки поворота против часовой стрелки
-        left_arrow = RoomObject(arrow_image, (30, 360))
-        left_arrow.click_hook = lambda *_: self.rotate(-1)
-
-        # Создание стрелочки поворота по часовой стрелке
-        right_arrow = RoomObject(pygame.transform.flip(arrow_image, True, False), (1250, 360))
-        right_arrow.click_hook = lambda *_: self.rotate(1)
-
-        # Добавление стрелочек в оверлей
-        self.add_objects(left_arrow, right_arrow)
+        # Создание инвентаря
+        self.inventory = Inventory(8)
 
         # Текущая стена, к которой повёрнут игрок
         self.current_wall = 0
@@ -99,6 +89,10 @@ class Room:
         :param wall: стена, на которую добавляется объект
         :param objs: объекты, который добавляется в комнату"""
 
+        # Устанавливаем родительский объект для каждого объекта
+        for obj in objs:
+            obj.room = self
+
         # Если стена не указана, то добавляем объекты в оверлеи
         if wall is None:
             self.overlays.add(*objs)
@@ -120,15 +114,9 @@ class RoomObject(Sprite):
         self.image = image
         self.rect = self.image.get_rect(center=pos)
         self.storage = {}
+        self.room = None
         self.update_hook = None
         self.click_hook = None
-
-    def draw(self, surface: pygame.Surface):
-        """Отрисовка объекта
-
-        :param surface: поверхность, на которой отрисовывается объект"""
-
-        surface.blit(self.image, self.rect)
 
     def update(self, delta_time: float):
         """Обновление объекта
