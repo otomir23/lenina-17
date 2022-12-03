@@ -27,13 +27,26 @@ class Game:
         # Добавление тестовых объектов
         s = pygame.transform.scale(load_image('h.jpg'), (200, 200))
 
+        # Демонстрация работы хука click (клик по объекту)
         a = RoomObject(s, (100, 100))
         a.click_hook = lambda obj, pos: print("тулуз нажат !", pos)
 
+        # Демонстрация работы хука update (обновление объекта)
         b = RoomObject(s, (200, 100))
         b.update_hook = lambda obj, dt: print("тулуз на экране !", int(1 / dt), "FPS")
 
+        # Демонстрация работы хранилища данных
         c = RoomObject(s, (300, 100))
+
+        def c_click_hook(obj, pos):
+            if 'test' not in obj.storage:
+                obj.storage['test'] = 0
+
+            obj.storage['test'] += 1
+            print("тулуз был нажат ", obj.storage['test'], "раз !")
+
+        c.click_hook = c_click_hook
+
         d = RoomObject(s, (400, 100))
 
         self.room.add_objects(a, wall=0)
