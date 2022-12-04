@@ -56,6 +56,60 @@ class InventoryUI(RoomObject):
                 self.inventory.select(i)
 
 
+class TransitionOverlay(RoomObject):
+    """Оверлей перехода между комнатами"""
+
+    def __init__(self, room: Room):
+        """Создание оверлея перехода
+
+        :param room: комната в которой будет отрисован оверлей"""
+
+        self.room = room
+        self.surface = pygame.Surface((1280, 720))
+        self.surface.fill((0, 0, 0))
+        self.surface.set_alpha(0)
+        self.alpha = 0
+        self.alpha_speed = 0
+        self.alpha_target = 0
+        self.rotation_target = 0
+
+        super().__init__(self.surface, (640, 360))
+
+        self.passthrough = True
+
+    def update(self, delta_time: float):
+        """Обновление оверлея перехода
+
+        :param delta_time: время, прошедшее с последнего обновления"""
+
+        # Обновляем прозрачность
+        self.alpha += self.alpha_speed * delta_time
+        self.surface.set_alpha(self.alpha)
+
+        # Если прозрачность достигла цели
+        if (self.alpha_speed > 0 and self.alpha > self.alpha_target) or \
+                (self.alpha_speed < 0 and self.alpha < self.alpha_target):
+            # Если цель - полная непрозрачность
+            if self.alpha_target > 0:
+                # Запускаем обратную анимацию
+                self.alpha_speed = -self.alpha_speed
+                self.alpha_target = 0
+                # Поворачиваем игрока
+                self.room.rotate(self.rotation_target)
+            else:
+                # Иначе останавливаем анимацию
+                self.alpha_speed = 0
+                self.passthrough = True
+
+    def start(self, target: int):
+        """Запуск анимации перехода"""
+
+        self.alpha_speed = 255 * 6
+        self.alpha_target = 255
+        self.rotation_target = target
+        self.passthrough = False
+
+
 def apply_ui(room: Room):
     """Применение интерфейса инвентаря
 
@@ -68,13 +122,16 @@ def apply_ui(room: Room):
     # Создание инвентаря
     inv_ui = InventoryUI(room.inventory)
 
+    # Создание оверлея перехода
+    transition_overlay = TransitionOverlay(room)
+
     # Создание стрелочки поворота против часовой стрелки
     left_arrow = RoomObject(arrow_image, (48, 360))
-    left_arrow.click_hook = lambda *_: room.rotate(-1)
+    left_arrow.click_hook = lambda *_: transition_overlay.start(-1)
 
     # Создание стрелочки поворота по часовой стрелке
     right_arrow = RoomObject(pygame.transform.flip(arrow_image, True, False), (1280 - inv_ui.width - 48, 360))
-    right_arrow.click_hook = lambda *_: room.rotate(1)
+    right_arrow.click_hook = lambda *_: transition_overlay.start(1)
 
     # Добавление объектов в оверлей
-    room.add_objects(left_arrow, right_arrow, inv_ui)
+    room.add_objects(transition_overlay, left_arrow, right_arrow, inv_ui)

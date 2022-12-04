@@ -76,7 +76,7 @@ class Room:
         :param pos: позиция клика"""
 
         # Проходим по всем объектам на текущей стене и оверлеях
-        for obj in [*self.walls[self.current_wall], *self.overlays]:
+        for obj in [*self.overlays, *self.walls[self.current_wall]]:
             # Проверяем, находится ли позиция клика внутри объекта и можно ли с ним взаимодействовать
             if obj.rect.collidepoint(pos) and not obj.passthrough:
                 # Вызываем обработчик клика
