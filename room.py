@@ -77,8 +77,8 @@ class Room:
 
         # Проходим по всем объектам на текущей стене и оверлеях
         for obj in [*self.walls[self.current_wall], *self.overlays]:
-            # Проверяем, находится ли позиция клика внутри объекта
-            if obj.rect.collidepoint(pos):
+            # Проверяем, находится ли позиция клика внутри объекта и можно ли с ним взаимодействовать
+            if obj.rect.collidepoint(pos) and not obj.passthrough:
                 # Вызываем обработчик клика
                 obj.click(pos)
                 break
@@ -113,8 +113,15 @@ class RoomObject(Sprite):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
-        self.storage = {}
         self.room = None
+
+        # Переменная, которая проходит ли клик сквозь объект
+        self.passthrough = False
+
+        # Хранилище состояния
+        self.storage = {}
+
+        # Хуки для обработки событий
         self.update_hook = None
         self.click_hook = None
 
