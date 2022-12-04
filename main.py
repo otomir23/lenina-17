@@ -1,10 +1,6 @@
 import pygame
 import sys
-
-from inventory import Item
-from room import RoomObject, Room
-from ui import apply_ui
-from utils import load_image
+from quest import QuestRoom
 
 
 class Game:
@@ -25,51 +21,7 @@ class Game:
         self.delta_time = 0
 
         # Создание комнаты
-        self.room = Room()
-
-        # Применение интерфейса к комнате
-        apply_ui(self.room)
-
-        # Добавление тестовых объектов
-        s = pygame.transform.scale(load_image('h.jpg'), (200, 200))
-
-        # Демонстрация работы хука click (клик по объекту)
-        a = RoomObject(s, (100, 100))
-        a.click_hook = lambda obj, pos: print("тулуз нажат !", pos)
-
-        # Демонстрация работы хука update (обновление объекта)
-        b = RoomObject(s, (200, 100))
-        b.update_hook = lambda obj, dt: print("тулуз на экране !", int(1 / dt), "FPS")
-
-        # Демонстрация работы хранилища данных
-        c = RoomObject(s, (300, 100))
-
-        def c_click_hook(obj, pos):
-            if 'test' not in obj.storage:
-                obj.storage['test'] = 0
-
-            obj.storage['test'] += 1
-            print("тулуз был нажат ", obj.storage['test'], "раз !")
-
-        c.click_hook = c_click_hook
-
-        # Демонстрация работы с инвентарем
-        d = RoomObject(s, (400, 100))
-
-        def d_click_hook(obj, pos):
-            inv = obj.room.inventory
-            if inv.selected is not None and inv.get_selected().uid == 'tuluz':
-                inv.remove_selected()
-                return
-
-            inv.add(Item('tuluz', 'Тулуз', load_image('hh.png')))
-
-        d.click_hook = d_click_hook
-
-        self.room.add_objects(a, wall=0)
-        self.room.add_objects(b, wall=1)
-        self.room.add_objects(c, wall=2)
-        self.room.add_objects(d, wall=3)
+        self.room = QuestRoom()
 
     def run(self):
         """Основной игровой цикл"""

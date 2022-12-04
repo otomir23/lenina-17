@@ -111,7 +111,7 @@ class TransitionOverlay(RoomObject):
 
 
 def apply_ui(room: Room):
-    """Применение интерфейса инвентаря
+    """Применение интерфейса
 
     :param room: комната в которой будет отрисован интерфейс"""
 
