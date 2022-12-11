@@ -23,53 +23,52 @@ class QuestRoom(Room):
     def apply_objects(self):
         """Добавление объектов"""
 
-        s = pygame.transform.scale(load_image('lemon.png'), (200, 200))
+        # Загружаем картинку чая и меняем ей размер
+        tea_image = load_image("tea.png")
+        tea_image = pygame.transform.scale(tea_image, (100, 67))
 
-        # Демонстрация работы хука click (клик по объекту)
-        a = RoomObject(s, (100, 100))
-        a.click_hook = self.basic_click_hook
-        self.add_objects(a, wall=0)
+        # Создаем объект чая и привязываем к нему функцию по клику
+        tea_object = RoomObject(tea_image, (400, 320))
+        tea_object.click_hook = self.click_tea
 
-        # Демонстрация работы хука update (обновление объекта)
-        b = RoomObject(s, (200, 100))
-        b.update_hook = self.basic_update_hook
-        self.add_objects(b, wall=1)
+        # Добавляем объект в комнату на стену 0 (переднюю)
+        self.add_objects(tea_object, wall=0)
 
-        # Демонстрация работы хранилища данных
-        c = RoomObject(s, (300, 100))
-        c.click_hook = self.basic_storage_example
-        self.add_objects(c, wall=2)
+        # Загружаем картинку чашки и меняем ей размер
+        cup_image = load_image("cup.png")
+        cup_image = pygame.transform.scale(cup_image, (100, 72))
 
-        # Демонстрация работы с инвентарем
-        d = RoomObject(s, (400, 100))
-        d.click_hook = self.basic_inventory_example
-        self.add_objects(d, wall=3)
+        # Создаем объект чашки и привязываем к нему функцию по клику
+        cup_object = RoomObject(cup_image, (400, 320))
+        cup_object.click_hook = self.click_cup
 
-    def basic_click_hook(self, obj, pos):
-        """Пример хука клика по объекту"""
+        # Добавляем объект в комнату на стену 3 по часовой стрелке (левую)
+        self.add_objects(cup_object, wall=3)
 
-        print("тулуз нажат !", pos)
+    def click_tea(self, obj, *_):
+        """Обработчик клика по чаю"""
 
-    def basic_update_hook(self, obj, dt):
-        """Пример хука обновления объекта"""
-
-        print("тулуз на экране !", int(1 / dt), "FPS")
-
-    def basic_storage_example(self, obj, pos):
-        """Пример работы с хранилищем данных"""
-
-        if 'test' not in obj.storage:
-            obj.storage['test'] = 0
-
-        obj.storage['test'] += 1
-        print("тулуз был нажат ", obj.storage['test'], "раз !")
-
-    def basic_inventory_example(self, obj, pos):
-        """Пример работы с инвентарем"""
-
-        inv = obj.room.inventory
-        if inv.selected is not None and inv.get_selected().uid == 'cup':
-            inv.remove_selected()
+        # Проверяем брали ли мы уже чай
+        if 'used' in obj.storage:
+            # Если да, то ничего не делаем
             return
 
-        inv.add(Item('cup', 'Чашка', load_image('cup.png')))
+        # Добавляем чай в инвентарь
+        self.inventory.add(Item("tea", "Чай", load_image("tea.png")))
+
+        # Удаляем картинку чая
+        obj.image = pygame.Surface((0, 0))
+
+        # Добавляем в хранилище объекта информацию о том, что чай уже брали
+        obj.storage['used'] = True
+
+    def click_cup(self, obj, *_):
+        """Обработчик клика по чашке"""
+
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он чаем
+        if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "tea":
+            # Если да, то удаляем чай из инвентаря
+            self.inventory.remove_selected()
+            print("Чай налит в чашку")
+            # И сохраняем информацию о том, что чай налит в чашку
+            obj.storage['has_tea'] = True
