@@ -23,7 +23,7 @@ class QuestRoom(Room):
     def apply_objects(self):
         """Добавление объектов"""
 
-        s = pygame.transform.scale(load_image('h.jpg'), (200, 200))
+        s = pygame.transform.scale(load_image('lemon.png'), (200, 200))
 
         # Демонстрация работы хука click (клик по объекту)
         a = RoomObject(s, (100, 100))
@@ -68,8 +68,8 @@ class QuestRoom(Room):
         """Пример работы с инвентарем"""
 
         inv = obj.room.inventory
-        if inv.selected is not None and inv.get_selected().uid == 'tuluz':
+        if inv.selected is not None and inv.get_selected().uid == 'cup':
             inv.remove_selected()
             return
 
-        inv.add(Item('tuluz', 'Тулуз', load_image('hh.png')))
+        inv.add(Item('cup', 'Чашка', load_image('cup.png')))
