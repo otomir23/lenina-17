@@ -39,11 +39,41 @@ class QuestRoom(Room):
         cup_image = pygame.transform.scale(cup_image, (100, 72))
 
         # Создаем объект чашки и привязываем к нему функцию по клику
-        cup_object = RoomObject(cup_image, (400, 320))
+        cup_object = RoomObject(cup_image, (400, 370))
         cup_object.click_hook = self.click_cup
 
         # Добавляем объект в комнату на стену 3 по часовой стрелке (левую)
         self.add_objects(cup_object, wall=3)
+
+        # Загружаем картинки книг и меняем их размер
+        book1_image = load_image("alyonka.png")
+        book1_image = pygame.transform.scale(book1_image, (25, 67))
+
+        book2_image = load_image("alyonka.png")
+        book2_image = pygame.transform.scale(book1_image, (50, 70))
+
+        book3_image = load_image("alyonka.png")
+        book3_image = pygame.transform.scale(book1_image, (33, 65))
+
+        # Создаем объекты книг и привязываем к ним функцию по клику
+        book1_object = RoomObject(book1_image, (250, 280))
+        book1_object.click_hook = self.click_books(book1_image, (250, 280))
+
+        book2_object = RoomObject(book2_image, (300, 280))
+        book2_object.click_hook = self.click_books(book2_image, (300, 280))
+
+        book3_object = RoomObject(book3_image, (360, 280))
+        book3_object.click_hook = self.click_books(book3_image, (360, 280))
+
+        # Добавляем объект в комнату на стену 3 по часовой стрелке (левую)
+        self.add_objects(book1_object, wall=3)
+
+        self.add_objects(book2_object, wall=3)
+
+        self.add_objects(book3_object, wall=3)
+
+    def click_books(self, image, pos):
+        DraggableObject(image, pos)
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
@@ -72,3 +102,42 @@ class QuestRoom(Room):
             print("Чай налит в чашку")
             # И сохраняем информацию о том, что чай налит в чашку
             obj.storage['has_tea'] = True
+
+
+class DraggableObject(RoomObject):
+    """Объект, который можно перетаскивать"""
+
+    def __init__(self, image, pos):
+        """Создание объекта"""
+
+        super().__init__(image, pos)
+
+        # Сохраняем начальную позицию
+        self.pos = pos
+        self.offset = None
+
+
+    def update(self, delta_time: float):
+        # Если мышь нажата и не была нажата раньше
+        if pygame.mouse.get_pressed()[0] and self.offset is None:
+            # Сохраняем смещение относительно объекта
+            self.offset = pygame.mouse.get_pos()[0] - self.pos[0], pygame.mouse.get_pos()[1] - self.pos[1]
+
+        # Если мышь отпущена
+        if not pygame.mouse.get_pressed()[0]:
+            # Сбрасываем смещение
+            self.offset = None
+
+        # Если смещение не равно None
+
+        if self.offset is not None:
+            # Перемещаем объект на новую позицию
+            self.pos = pygame.mouse.get_pos()[0] - self.offset[0], pygame.mouse.get_pos()[1] - self.offset[1]
+
+        # Обновляем позицию объекта
+        self.rect = self.image.get_rect(center=self.pos)
+
+        # Вызываем метод родителя
+        super().update(delta_time)
+
+
