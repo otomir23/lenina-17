@@ -50,10 +50,10 @@ class QuestRoom(Room):
         book1_image = pygame.transform.scale(book1_image, (25, 67))
 
         book2_image = load_image("alyonka.png")
-        book2_image = pygame.transform.scale(book1_image, (50, 70))
+        book2_image = pygame.transform.scale(book2_image, (50, 70))
 
         book3_image = load_image("alyonka.png")
-        book3_image = pygame.transform.scale(book1_image, (33, 65))
+        book3_image = pygame.transform.scale(book3_image, (33, 65))
 
         # Создаем объекты книг
         book1_object = DraggableObject(book1_image, (250, 280))
@@ -61,9 +61,14 @@ class QuestRoom(Room):
         book3_object = DraggableObject(book3_image, (360, 280))
 
         # Добавляем объекты в комнату на стену 3 по часовой стрелке (левую)
-        self.add_objects(book1_object, wall=3)
-        self.add_objects(book2_object, wall=3)
-        self.add_objects(book3_object, wall=3)
+        self.add_objects(book1_object, book2_object, book3_object, wall=3)
+
+        # Создаем лампу
+        lamp = RoomObject(load_image("lamp_off.png"), (400, 300))
+        lamp.click_hook = self.click_lamp
+
+        # Добавляем лампу в комнату на стену 2 по часовой стрелке (заднюю)
+        self.add_objects(lamp, wall=2)
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
@@ -92,6 +97,27 @@ class QuestRoom(Room):
             print("Чай налит в чашку")
             # И сохраняем информацию о том, что чай налит в чашку
             obj.storage['has_tea'] = True
+
+    def click_lamp(self, obj, pos):
+        """Обработчик клика по лампе"""
+
+        # Сохраняем в переменную информацию о том, была ли лампа включена
+        lamp_on = 'on' in obj.storage and obj.storage['on']
+
+        # Если мы нажали на верёвку лампы, то включаем/выключаем лампу
+        if 415 < pos[0] < 425 and 315 < pos[1] < 335:
+            if lamp_on:
+                obj.image = load_image("lamp_off.png")
+                obj.storage['on'] = False
+            else:
+                obj.image = load_image("lamp_on_empty.png" if 'piece_taken' in obj.storage else "lamp_on.png")
+                obj.storage['on'] = True
+
+        # Если лампа включена и был нажат кусок картинки, то берём его
+        if lamp_on and 'piece_taken' not in obj.storage and 400 < pos[0] < 430 and 300 < pos[1] < 315:
+            self.inventory.add(Item("piece_1", "Кусочек картинки", load_image("paper.png")))
+            obj.storage['piece_taken'] = True
+            obj.image = load_image("lamp_on_empty.png")
 
 
 class DraggableObject(RoomObject):
