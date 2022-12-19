@@ -52,8 +52,28 @@ class QuestRoom(Room):
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
 
-        # Добавляем объект в комнату на стену 0 (переднюю)
-        self.add_objects(tea_object, wall=0)
+        # Создаем кусочек картинки 3
+        paper_piece3 = RoomObject(pygame.transform.rotate(paper_image, 90), (720, 220))
+        paper_piece3.update_hook = self.update_piece
+        paper_piece3.click_hook = self.get_piece_click_handler(3)
+
+        # Добавляем объекты в комнату на стену 0 (переднюю)
+        self.add_objects(tea_object, paper_piece3, wall=0)
+
+        # Создаем кусочек картинки 4
+        paper_piece4 = RoomObject(pygame.transform.rotate(paper_image, 90), (100, 400))
+        paper_piece4.update_hook = self.update_piece
+        paper_piece4.click_hook = self.get_piece_click_handler(4)
+
+        # Добавляем объекты в комнату на стену 1 (правую)
+        self.add_objects(paper_piece4, wall=1)
+
+        # Создаем лампу
+        lamp = RoomObject(load_image("lamp_off.png"), (400, 300))
+        lamp.click_hook = self.click_lamp
+
+        # Добавляем объекты на стену 2 по часовой стрелке (заднюю)
+        self.add_objects(lamp, wall=2)
 
         # Создаем объект чашки и привязываем к нему функцию по клику
         cup_object = RoomObject(cup_image, (400, 370))
@@ -67,7 +87,7 @@ class QuestRoom(Room):
         # Создаем объекты матрешки
         matryoshka_top = RoomObject(matryoshka_top_image, (400, 185))
         matryoshka_bottom = RoomObject(matryoshka_bottom_image, (400, 185 + matryoshka_top_image.get_height()))
-        paper_piece2 = RoomObject(paper_image, (400, 185))
+        paper_piece2 = RoomObject(paper_image, (400, 200))
 
         matryoshka_top.click_hook = self.click_matryoshka_top
         matryoshka_top.update_hook = self.update_matryoshka_top
@@ -76,13 +96,6 @@ class QuestRoom(Room):
 
         # Добавляем объекты в комнату на стену 3 по часовой стрелке (левую)
         self.add_objects(cup_object, book1_object, book2_object, book3_object, paper_piece2, matryoshka_top, matryoshka_bottom, wall=3)
-
-        # Создаем лампу
-        lamp = RoomObject(load_image("lamp_off.png"), (400, 300))
-        lamp.click_hook = self.click_lamp
-
-        # Добавляем лампу в комнату на стену 2 по часовой стрелке (заднюю)
-        self.add_objects(lamp, wall=2)
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
