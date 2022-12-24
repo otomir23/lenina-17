@@ -53,6 +53,21 @@ class QuestRoom(Room):
         matryoshka_bottom_image = load_image("matryoshka_bottom.png")
         matryoshka_bottom_image = pygame.transform.scale(matryoshka_bottom_image, (32, 32))
 
+        frame_of_picture = load_image("frame.jpg")
+        frame_of_picture = pygame.transform.scale(frame_of_picture, (600, 450))
+
+        first_piece_of_picture = load_image("first_piece_of_picture.png")
+        first_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+
+        second_piece_of_picture = load_image("second_piece_of_picture.png")
+        second_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+
+        third_piece_of_picture = load_image("third_piece_of_picture.png")
+        third_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+
+        fourth_piece_of_picture = load_image("fourth_piece_of_picture.png")
+        fourth_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
@@ -200,7 +215,6 @@ class QuestRoom(Room):
         # Если кусок картинки брали, то удаляем его
         if 'taken' in obj.storage:
             obj.image = pygame.Surface((0, 0))
-
 
 class BookPuzzle(RoomObject):
     """Головоломка с книгами"""
