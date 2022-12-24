@@ -170,7 +170,7 @@ class QuestRoom(Room):
 
             # Если анимация не началась, начинаем её
             if not obj.storage['opened']:
-                obj.rect.y -= 10
+                obj.rect.y -= 500 * dt
             else:
                 obj.image = pygame.Surface((0, 0))
 
