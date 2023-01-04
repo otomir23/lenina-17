@@ -70,6 +70,8 @@ class QuestRoom(Room):
 
         first_piece_of_picture = self.first_piece_of_picture
         second_piece_of_picture = self.second_piece_of_picture
+        third_piece_of_picture = self.third_piece_of_picture
+        fourth_piece_of_picture = self.fourth_piece_of_picture
         frame_of_picture = self.frame_of_picture
 
         # Добавляем объект в комнату на стену 3
