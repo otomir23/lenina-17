@@ -54,19 +54,27 @@ class QuestRoom(Room):
         matryoshka_bottom_image = pygame.transform.scale(matryoshka_bottom_image, (32, 32))
 
         frame_of_picture = load_image("frame.jpg")
-        frame_of_picture = pygame.transform.scale(frame_of_picture, (600, 450))
+        frame_of_picture = pygame.transform.scale(frame_of_picture, (450, 350))
 
         first_piece_of_picture = load_image("first_piece_of_picture.png")
-        first_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+        first_piece_of_picture = pygame.transform.scale(first_piece_of_picture, (200, 130))
 
         second_piece_of_picture = load_image("second_piece_of_picture.png")
-        second_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+        second_piece_of_picture = pygame.transform.scale(second_piece_of_picture, (200, 130))
 
         third_piece_of_picture = load_image("third_piece_of_picture.png")
-        third_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+        third_piece_of_picture = pygame.transform.scale(third_piece_of_picture, (200, 130))
 
         fourth_piece_of_picture = load_image("fourth_piece_of_picture.png")
-        fourth_piece_of_picture = pygame.transform.scale(frame_of_picture, (200, 130))
+        fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, (200, 130))
+
+        first_piece_of_picture = self.first_piece_of_picture
+        second_piece_of_picture = self.second_piece_of_picture
+        frame_of_picture = self.frame_of_picture
+
+        # Добавляем объект в комнату на стену 3
+        frame_of_picture_obj = RoomObject(frame_of_picture, (400, 320))
+        self.add_objects(frame_of_picture_obj, wall=3)
 
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
@@ -197,6 +205,7 @@ class QuestRoom(Room):
         """Возвращает обработчик клика по куску картинки"""
 
         def click_piece(obj, *_):
+            count = 0
             # Если кусок картинки взят, то ничего не делаем
             if 'taken' in obj.storage:
                 return
@@ -206,7 +215,13 @@ class QuestRoom(Room):
 
             # Добавляем кусок картинки в инвентарь
             self.inventory.add(Item(f"piece_{piece}", "Кусочек картинки", load_image("paper.png")))
-
+            count += 1
+            if count == 4:
+                self.current_wall = 3
+                self.frame_of_picture.blit(self.first_piece_of_picture, (50, 20))
+                self.frame_of_picture.blit(self.second_piece_of_picture, (250, 20))
+                self.frame_of_picture.blit(self.third_piece_of_picture, (50, 150))
+                self.frame_of_picture.blit(self.fourth_piece_of_picture, (250, 150))
         return click_piece
 
     def update_piece(self, obj, dt):
