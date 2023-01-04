@@ -35,14 +35,17 @@ class QuestRoom(Room):
         cup_image = load_image("cup.png")
         cup_image = pygame.transform.scale(cup_image, (100, 72))
 
-        book1_image = load_image("alyonka.png")
+        book1_image = load_image("book1.png")
         book1_image = pygame.transform.scale(book1_image, (25, 67))
 
-        book2_image = load_image("alyonka.png")
+        book2_image = load_image("book2.png")
         book2_image = pygame.transform.scale(book2_image, (50, 70))
 
-        book3_image = load_image("alyonka.png")
+        book3_image = load_image("book3.png")
         book3_image = pygame.transform.scale(book3_image, (33, 65))
+
+        book4_image = load_image("book4.png")
+        book4_image = pygame.transform.scale(book4_image, (33, 65))
 
         solved_book_image = load_image("alyonka_solved.png")
         solved_book_image = pygame.transform.scale(solved_book_image, (150, 80))
@@ -54,23 +57,21 @@ class QuestRoom(Room):
         matryoshka_bottom_image = pygame.transform.scale(matryoshka_bottom_image, (32, 32))
 
         frame_of_picture = load_image("frame.jpg")
-        frame_of_picture = pygame.transform.scale(frame_of_picture, (450, 350))
+        frame_of_picture = pygame.transform.scale(frame_of_picture, (64, 50))
+
+        piece_size = tuple(n / 2 for n in frame_of_picture.get_size())
 
         first_piece_of_picture = load_image("first_piece_of_picture.png")
-        first_piece_of_picture = pygame.transform.scale(first_piece_of_picture, (200, 130))
+        first_piece_of_picture = pygame.transform.scale(first_piece_of_picture, piece_size)
 
         second_piece_of_picture = load_image("second_piece_of_picture.png")
-        second_piece_of_picture = pygame.transform.scale(second_piece_of_picture, (200, 130))
+        second_piece_of_picture = pygame.transform.scale(second_piece_of_picture, piece_size)
 
         third_piece_of_picture = load_image("third_piece_of_picture.png")
-        third_piece_of_picture = pygame.transform.scale(third_piece_of_picture, (200, 130))
+        third_piece_of_picture = pygame.transform.scale(third_piece_of_picture, piece_size)
 
         fourth_piece_of_picture = load_image("fourth_piece_of_picture.png")
-        fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, (200, 130))
-
-        # Добавляем объект в комнату на стену 3
-        frame_of_picture_obj = RoomObject(frame_of_picture, (400, 320))
-        self.add_objects(frame_of_picture_obj, wall=3)
+        fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, piece_size)
 
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
@@ -96,8 +97,20 @@ class QuestRoom(Room):
         lamp = RoomObject(load_image("lamp_off.png"), (400, 300))
         lamp.click_hook = self.click_lamp
 
+        # Создаём рамку
+        frame_of_picture_obj = RoomObject(frame_of_picture, (600, 320))
+        frame_of_picture_obj.click_hook = self.click_frame
+        frame_of_picture_obj.update_hook = self.update_frame
+        frame_of_picture_obj.frame = frame_of_picture
+        frame_of_picture_obj.pieces = [
+            first_piece_of_picture,
+            second_piece_of_picture,
+            third_piece_of_picture,
+            fourth_piece_of_picture
+        ]
+
         # Добавляем объекты на стену 2 по часовой стрелке (заднюю)
-        self.add_objects(lamp, wall=2)
+        self.add_objects(lamp, frame_of_picture_obj, wall=2)
 
         # Создаем объект чашки и привязываем к нему функцию по клику
         cup_object = RoomObject(cup_image, (400, 370))
@@ -105,14 +118,15 @@ class QuestRoom(Room):
 
         # Создаем объект книг
         book_puzzle = BookPuzzle([
-            (1, book1_image),
-            (2, book2_image),
-            (0, book3_image),
-        ], solved_book_image, (260, 280))
+            (3, book1_image),
+            (1, book2_image),
+            (2, book3_image),
+            (0, book4_image),
+        ], solved_book_image, (320, 295))
 
         # Создаем объекты матрешки
         matryoshka_top = RoomObject(matryoshka_top_image, (400, 185))
-        matryoshka_bottom = RoomObject(matryoshka_bottom_image, (400, 185 + matryoshka_top_image.get_height()))
+        matryoshka_bottom = RoomObject(matryoshka_bottom_image, (400, 185 + matryoshka_top_image.get_height() - 5))
         paper_piece2 = RoomObject(paper_image, (400, 200))
 
         matryoshka_top.click_hook = self.click_matryoshka_top
@@ -201,7 +215,6 @@ class QuestRoom(Room):
         """Возвращает обработчик клика по куску картинки"""
 
         def click_piece(obj, *_):
-            count = 0
             # Если кусок картинки взят, то ничего не делаем
             if 'taken' in obj.storage:
                 return
@@ -211,13 +224,6 @@ class QuestRoom(Room):
 
             # Добавляем кусок картинки в инвентарь
             self.inventory.add(Item(f"piece_{piece}", "Кусочек картинки", load_image("paper.png")))
-            count += 1
-            if count == 4:
-                self.current_wall = 3
-                self.frame_of_picture.blit(self.first_piece_of_picture, (50, 20))
-                self.frame_of_picture.blit(self.second_piece_of_picture, (250, 20))
-                self.frame_of_picture.blit(self.third_piece_of_picture, (50, 150))
-                self.frame_of_picture.blit(self.fourth_piece_of_picture, (250, 150))
         return click_piece
 
     def update_piece(self, obj, dt):
@@ -226,6 +232,52 @@ class QuestRoom(Room):
         # Если кусок картинки брали, то удаляем его
         if 'taken' in obj.storage:
             obj.image = pygame.Surface((0, 0))
+
+    def click_frame(self, obj, pos):
+        """Обработчик клика по рамке"""
+
+        # Если руки пусты
+        if self.inventory.get_selected() is None:
+            return
+
+        # Если в руках кусок картинки
+        if self.inventory.get_selected().uid == "piece_1":
+            # Удаляем кусок картинки из инвентаря
+            self.inventory.remove_selected()
+            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
+            obj.storage['piece_1'] = True
+        elif self.inventory.get_selected().uid == "piece_2":
+            # Удаляем кусок картинки из инвентаря
+            self.inventory.remove_selected()
+            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
+            obj.storage['piece_2'] = True
+        elif self.inventory.get_selected().uid == "piece_3":
+            # Удаляем кусок картинки из инвентаря
+            self.inventory.remove_selected()
+            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
+            obj.storage['piece_3'] = True
+        elif self.inventory.get_selected().uid == "piece_4":
+            # Удаляем кусок картинки из инвентаря
+            self.inventory.remove_selected()
+            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
+            obj.storage['piece_4'] = True
+
+    def update_frame(self, obj, dt):
+        """Обновление рамки"""
+
+        # Сбрасываем изображение рамки
+        obj.image = obj.frame
+
+        # Рисуем куски, которые вставлены в рамку
+        if 'piece_1' in obj.storage:
+            obj.image.blit(obj.pieces[0], (0, 0))
+        if 'piece_2' in obj.storage:
+            obj.image.blit(obj.pieces[1], (obj.pieces[0].get_width(), 0))
+        if 'piece_3' in obj.storage:
+            obj.image.blit(obj.pieces[2], (0, obj.pieces[0].get_height()))
+        if 'piece_4' in obj.storage:
+            obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
+
 
 class BookPuzzle(RoomObject):
     """Головоломка с книгами"""
