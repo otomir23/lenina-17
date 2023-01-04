@@ -68,12 +68,6 @@ class QuestRoom(Room):
         fourth_piece_of_picture = load_image("fourth_piece_of_picture.png")
         fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, (200, 130))
 
-        first_piece_of_picture = self.first_piece_of_picture
-        second_piece_of_picture = self.second_piece_of_picture
-        third_piece_of_picture = self.third_piece_of_picture
-        fourth_piece_of_picture = self.fourth_piece_of_picture
-        frame_of_picture = self.frame_of_picture
-
         # Добавляем объект в комнату на стену 3
         frame_of_picture_obj = RoomObject(frame_of_picture, (400, 320))
         self.add_objects(frame_of_picture_obj, wall=3)
