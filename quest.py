@@ -173,7 +173,7 @@ class QuestRoom(Room):
             return
 
         # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_one", "карточка_1", load_image("number_one_image.png")))
+        self.inventory.add(Item("number_one", "карточка_1", load_image("number_one.png")))
 
         # Удаляем картинку карточки
         obj.image = pygame.Surface((0, 0))
@@ -190,7 +190,7 @@ class QuestRoom(Room):
             return
 
         # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_two", "карточка_2", load_image("number_two_image.png")))
+        self.inventory.add(Item("number_two", "карточка_2", load_image("number_two.png")))
 
         # Удаляем картинку карточки
         obj.image = pygame.Surface((0, 0))
@@ -207,7 +207,7 @@ class QuestRoom(Room):
             return
 
         # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_three", "карточка_3", load_image("number_three_image.png")))
+        self.inventory.add(Item("number_three", "карточка_3", load_image("number_three.png")))
 
         # Удаляем картинку карточки
         obj.image = pygame.Surface((0, 0))
