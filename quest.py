@@ -79,30 +79,11 @@ class QuestRoom(Room):
         number_one_image = load_image("number_one.png")
         number_one_image = pygame.transform.scale(number_one_image, (50, 70))
 
-        number_two_image = load_image("number_two_image.png")
+        number_two_image = load_image("number_two.png")
         number_two_image = pygame.transform.scale(number_two_image, (50, 70))
 
-        number_three_image = load_image("number_three_image.png")
+        number_three_image = load_image("number_three.png")
         number_three_image = pygame.transform.scale(number_three_image, (50, 70))
-
-        # Создаем объект первой карточки и привязываем к нему функцию по клику
-        number_one_object = RoomObject(number_one_image, (400, 320))
-        number_one_object.click_hook = self.click_number_one
-
-        # Создаем объект второй карточки и привязываем к нему функцию по клику
-        number_two_object = RoomObject(number_two_image, (500, 320))
-        number_two_object.click_hook = self.click_number_two
-
-        # Создаем объект третьей карточки и привязываем к нему функцию по клику
-        number_three_object = RoomObject(number_three_image, (600, 320))
-        number_three_object.click_hook = self.click_number_three
-
-        # Создаем объект шкатулки и привязываем к нему функцию по клику
-        case_object = RoomObject(case_image, (300, 320))
-        case_object.click_hook = self.click_case
-
-        # Добавляем объекты в комнату на стену 4
-        self.add_objects(case_image, number_one_object, number_two_object, number_three_object, wall=3)
 
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
@@ -165,7 +146,23 @@ class QuestRoom(Room):
         paper_piece2.update_hook = self.update_piece
         paper_piece2.click_hook = self.get_piece_click_handler(2)
 
-        self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, wall=3)
+        # Создаем объект первой карточки и привязываем к нему функцию по клику
+        number_one_object = RoomObject(number_one_image, (400, 320))
+        number_one_object.click_hook = self.click_number_one
+
+        # Создаем объект второй карточки и привязываем к нему функцию по клику
+        number_two_object = RoomObject(number_two_image, (500, 320))
+        number_two_object.click_hook = self.click_number_two
+
+        # Создаем объект третьей карточки и привязываем к нему функцию по клику
+        number_three_object = RoomObject(number_three_image, (600, 320))
+        number_three_object.click_hook = self.click_number_three
+
+        # Создаем объект шкатулки и привязываем к нему функцию по клику
+        case_object = RoomObject(case_image, (300, 320))
+        case_object.click_hook = self.click_case
+
+        self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, number_one_object, number_two_object, number_three_object, wall=3)
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
