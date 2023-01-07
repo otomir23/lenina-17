@@ -57,7 +57,7 @@ class QuestRoom(Room):
         matryoshka_bottom_image = pygame.transform.scale(matryoshka_bottom_image, (32, 32))
 
         frame_of_picture = load_image("frame.jpg")
-        frame_of_picture = pygame.transform.scale(frame_of_picture, (64, 50))
+        frame_of_picture = pygame.transform.scale(frame_of_picture, (264, 150))
 
         piece_size = tuple(n / 2 for n in frame_of_picture.get_size())
 
@@ -163,6 +163,63 @@ class QuestRoom(Room):
         case_object.click_hook = self.click_case
 
         self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, number_one_object, number_two_object, number_three_object, wall=3)
+
+    def click_number_one(self, obj, *_):
+        """Обработчик клика по карточке с номером 1"""
+
+        # Проверяем брали ли мы уже карточку
+        if 'used' in obj.storage:
+            # Если да, то ничего не делаем
+            return
+
+        # Добавляем карточку в инвентарь
+        self.inventory.add(Item("number_one", "карточка_1", load_image("number_one_image.png")))
+
+        # Удаляем картинку карточки
+        obj.image = pygame.Surface((0, 0))
+
+        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
+        obj.storage['used'] = True
+
+    def click_number_two(self, obj, *_):
+        """Обработчик клика по карточке с номером 2"""
+
+        # Проверяем брали ли мы уже карточку
+        if 'used' in obj.storage:
+            # Если да, то ничего не делаем
+            return
+
+        # Добавляем карточку в инвентарь
+        self.inventory.add(Item("number_two", "карточка_2", load_image("number_two_image.png")))
+
+        # Удаляем картинку карточки
+        obj.image = pygame.Surface((0, 0))
+
+        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
+        obj.storage['used'] = True
+
+    def click_number_three(self, obj, *_):
+        """Обработчик клика по карточке с номером 1"""
+
+        # Проверяем брали ли мы уже карточку
+        if 'used' in obj.storage:
+            # Если да, то ничего не делаем
+            return
+
+        # Добавляем карточку в инвентарь
+        self.inventory.add(Item("number_three", "карточка_3", load_image("number_three_image.png")))
+
+        # Удаляем картинку карточки
+        obj.image = pygame.Surface((0, 0))
+
+        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
+        obj.storage['used'] = True
+
+    def click_case(self, obj, *_):
+        """Обработчик клика по шкатулке"""
+
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он шкатулкой
+        pass
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
