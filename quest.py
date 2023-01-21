@@ -56,7 +56,7 @@ class QuestRoom(Room):
         book4_image = pygame.transform.scale(book4_image, (33, 65))
 
         solved_book_image = load_image("number_three.png")
-        solved_book_image = pygame.transform.scale(solved_book_image, (80, 80))
+        solved_book_image = pygame.transform.scale(solved_book_image, (48, 65))
 
         matryoshka_top_image = load_image("matryoshka_top.png")
         matryoshka_top_image = pygame.transform.scale(matryoshka_top_image, (32, 32))
@@ -80,6 +80,9 @@ class QuestRoom(Room):
 
         fourth_piece_of_picture = load_image("fourth_piece_of_picture.png")
         fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, piece_size)
+
+        back_of_picture = load_image("number_five.png")
+        back_of_picture = pygame.transform.scale(back_of_picture, (264, 150))
 
         case_image = load_image("case.png")
         case_image = pygame.transform.scale(case_image, (125, 80))
@@ -116,6 +119,7 @@ class QuestRoom(Room):
         frame_of_picture_obj.click_hook = self.click_frame
         frame_of_picture_obj.update_hook = self.update_frame
         frame_of_picture_obj.frame = frame_of_picture
+        frame_of_picture_obj.flipped = back_of_picture
         frame_of_picture_obj.pieces = [
             first_piece_of_picture,
             second_piece_of_picture,
@@ -185,7 +189,7 @@ class QuestRoom(Room):
     def click_case(self, obj, pos):
         """Обработчик клика по шкатулке"""
 
-        if 'opened' in obj.storage:
+        if obj.storage.get('opened', False):
             # Если шкатулка открыта, то игнорируем клик
             return
 
@@ -205,7 +209,7 @@ class QuestRoom(Room):
     def update_case(self, obj, dt):
         """Обработчик обновления шкатулки"""
 
-        if 'opened' in obj.storage:
+        if obj.storage.get('opened', False):
             # Если шкатулка открыта, то игнорируем обновление
             return
 
@@ -225,7 +229,7 @@ class QuestRoom(Room):
         """Обработчик клика по чаю"""
 
         # Проверяем брали ли мы уже чай
-        if 'used' in obj.storage:
+        if obj.storage.get('used', False):
             # Если да, то ничего не делаем
             return
 
@@ -253,7 +257,7 @@ class QuestRoom(Room):
         """Обработчик клика по лампе"""
 
         # Сохраняем в переменную информацию о том, была ли лампа включена
-        lamp_on = 'on' in obj.storage and obj.storage['on']
+        lamp_on = obj.storage.get('on', False)
 
         # Если мы нажали на верёвку лампы, то включаем/выключаем лампу
         if 415 < pos[0] < 425 and 315 < pos[1] < 335:
@@ -261,11 +265,11 @@ class QuestRoom(Room):
                 obj.image = load_image("lamp_off.png")
                 obj.storage['on'] = False
             else:
-                obj.image = load_image("lamp_on_empty.png" if 'piece_taken' in obj.storage else "lamp_on.png")
+                obj.image = load_image("lamp_on_empty.png" if obj.storage.get('piece_taken', False) else "lamp_on.png")
                 obj.storage['on'] = True
 
         # Если лампа включена и был нажат кусок картинки, то берём его
-        if lamp_on and 'piece_taken' not in obj.storage and 400 < pos[0] < 430 and 300 < pos[1] < 315:
+        if lamp_on and not obj.storage.get('piece_taken', False) and 400 < pos[0] < 430 and 300 < pos[1] < 315:
             self.inventory.add(Item("piece_1", "Кусочек картинки", load_image("paper.png")))
             obj.storage['piece_taken'] = True
             obj.image = load_image("lamp_on_empty.png")
@@ -274,7 +278,7 @@ class QuestRoom(Room):
         """Обработчик клика по верхней части матрёшки"""
 
         # Если верхняя часть матрёшки открыта, то ничего не делаем
-        if 'opened' in obj.storage:
+        if obj.storage.get('opened', False):
             return
 
         # Добавляем в хранилище объекта информацию о том, что матрёшка начала открытие
@@ -283,7 +287,7 @@ class QuestRoom(Room):
     def update_matryoshka_top(self, obj, dt):
         """Обновление верхней части матрёшки"""
 
-        if 'opened' in obj.storage:
+        if obj.storage.get('opened', 12) != 12:
             y_target = 100
 
             # Если анимация не началась, начинаем её
@@ -301,7 +305,7 @@ class QuestRoom(Room):
 
         def click_piece(obj, *_):
             # Если кусок картинки взят, то ничего не делаем
-            if 'taken' in obj.storage:
+            if obj.storage.get('taken', False):
                 return
 
             # Добавляем в хранилище объекта информацию о том, что кусок картинки взят
@@ -315,11 +319,17 @@ class QuestRoom(Room):
         """Обновление куска картинки"""
 
         # Если кусок картинки брали, то удаляем его
-        if 'taken' in obj.storage:
+        if obj.storage.get('taken', False):
             obj.image = pygame.Surface((0, 0))
 
     def click_frame(self, obj, pos):
         """Обработчик клика по рамке"""
+
+        # Если все куски вставлены, то переворачиваем картинку
+        if obj.storage.get('piece_1', False) and obj.storage.get('piece_2', False) and \
+                obj.storage.get('piece_3', False) and obj.storage.get('piece_4', False):
+            obj.storage['flipped'] = not obj.storage.get('flipped', False)
+            return
 
         # Если руки пусты
         if self.inventory.get_selected() is None:
@@ -350,17 +360,22 @@ class QuestRoom(Room):
     def update_frame(self, obj, dt):
         """Обновление рамки"""
 
+        if obj.storage.get('flipped', False):
+            # Если картинка перевернута, то рисуем ее
+            obj.image = obj.flipped
+            return
+
         # Сбрасываем изображение рамки
         obj.image = obj.frame
 
         # Рисуем куски, которые вставлены в рамку
-        if 'piece_1' in obj.storage:
+        if obj.storage.get('piece_1', False):
             obj.image.blit(obj.pieces[0], (0, 0))
-        if 'piece_2' in obj.storage:
+        if obj.storage.get('piece_2', False):
             obj.image.blit(obj.pieces[1], (obj.pieces[0].get_width(), 0))
-        if 'piece_3' in obj.storage:
+        if obj.storage.get('piece_3', False):
             obj.image.blit(obj.pieces[2], (0, obj.pieces[0].get_height()))
-        if 'piece_4' in obj.storage:
+        if obj.storage.get('piece_4', False):
             obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
 
 
@@ -412,7 +427,7 @@ class BookPuzzle(RoomObject):
 
     def update(self, delta_time: float):
         # Если головоломка не решена, то обрабатываем перемещение книг
-        if 'solved' not in self.storage or not self.storage['solved']:
+        if not self.storage.get('solved', False):
             self.handle_drag()
             sorted_books = sorted(self.books, key=self.get_book_key)
 
