@@ -3,7 +3,7 @@ import pygame
 from inventory import Item
 from room import Room, RoomObject
 from ui import apply_ui
-from utils import load_image
+from utils import load_image, load_music
 from typing import Tuple, Union
 from pygame.surface import SurfaceType
 
@@ -19,8 +19,13 @@ class QuestRoom(Room):
         # Применение интерфейса к комнате
         apply_ui(self)
 
-        # Добавление тестовых объектов
+        # Добавление объектов
         self.apply_objects()
+
+        # Запуск музыки
+        load_music("bg.mp3")
+        pygame.mixer.music.set_volume(0.2)
+        pygame.mixer.music.play(-1)
 
     def apply_objects(self):
         """Добавление объектов"""
@@ -317,51 +322,6 @@ class QuestRoom(Room):
         # Если кусок картинки брали, то удаляем его
         if 'taken' in obj.storage:
             obj.image = pygame.Surface((0, 0))
-
-    def click_frame(self, obj, pos):
-        """Обработчик клика по рамке"""
-
-        # Если руки пусты
-        if self.inventory.get_selected() is None:
-            return
-
-        # Если в руках кусок картинки
-        if self.inventory.get_selected().uid == "piece_1":
-            # Удаляем кусок картинки из инвентаря
-            self.inventory.remove_selected()
-            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
-            obj.storage['piece_1'] = True
-        elif self.inventory.get_selected().uid == "piece_2":
-            # Удаляем кусок картинки из инвентаря
-            self.inventory.remove_selected()
-            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
-            obj.storage['piece_2'] = True
-        elif self.inventory.get_selected().uid == "piece_3":
-            # Удаляем кусок картинки из инвентаря
-            self.inventory.remove_selected()
-            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
-            obj.storage['piece_3'] = True
-        elif self.inventory.get_selected().uid == "piece_4":
-            # Удаляем кусок картинки из инвентаря
-            self.inventory.remove_selected()
-            # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
-            obj.storage['piece_4'] = True
-
-    def update_frame(self, obj, dt):
-        """Обновление рамки"""
-
-        # Сбрасываем изображение рамки
-        obj.image = obj.frame
-
-        # Рисуем куски, которые вставлены в рамку
-        if 'piece_1' in obj.storage:
-            obj.image.blit(obj.pieces[0], (0, 0))
-        if 'piece_2' in obj.storage:
-            obj.image.blit(obj.pieces[1], (obj.pieces[0].get_width(), 0))
-        if 'piece_3' in obj.storage:
-            obj.image.blit(obj.pieces[2], (0, obj.pieces[0].get_height()))
-        if 'piece_4' in obj.storage:
-            obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
 
 
 class BookPuzzle(RoomObject):

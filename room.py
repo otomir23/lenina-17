@@ -3,7 +3,7 @@ import pygame
 from pygame.sprite import Sprite, Group
 
 from inventory import Inventory
-from utils import load_image
+from utils import load_image, load_sound
 
 
 # Этот файл отвечает за фреймворк комнат, который включает в себя:
@@ -41,6 +41,9 @@ class Room:
 
         # Текущая стена, к которой повёрнут игрок
         self.current_wall = 0
+
+        # Загрузка звуков
+        self.__click_sound = load_sound("click.mp3")
 
     def update(self, delta_time: float):
         """Обновление объектов на текущей стене
@@ -81,6 +84,8 @@ class Room:
             if obj.rect.collidepoint(pos) and not obj.passthrough:
                 # Вызываем обработчик клика
                 obj.click(pos)
+                # Воспроизводим звук
+                self.__click_sound.play()
                 break
 
     def add_objects(self, *objs: RoomObject, wall: int = None):

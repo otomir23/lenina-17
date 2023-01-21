@@ -1,5 +1,7 @@
 import pygame
 
+from utils import load_sound
+
 
 class Item:
     """Предмет, который можно взять в инвентарь"""
@@ -32,6 +34,10 @@ class Inventory:
         self.items = []
         self.selected = None
 
+        # Загружаем звуки
+        self.__pickup_sound = load_sound("pickup.mp3")
+        self.__drop_sound = load_sound("drop.mp3")
+
     def add(self, item: Item):
         """Добавление предмета в инвентарь
 
@@ -41,6 +47,7 @@ class Inventory:
         if len(self.items) < self.size and self.get(item.uid) is None:
             # Если есть свободное место, то добавляем предмет
             self.items.append(item)
+            self.__pickup_sound.play()
 
     def remove(self, item_uid: str):
         """Удаление предмета из инвентаря
@@ -62,6 +69,7 @@ class Inventory:
         if self.selected is not None:
             self.items.pop(self.selected)
             self.selected = None
+            self.__drop_sound.play()
 
     def get(self, item_uid: str) -> Item:
         """
