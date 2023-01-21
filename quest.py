@@ -84,9 +84,16 @@ class QuestRoom(Room):
         case_image = load_image("case.png")
         case_image = pygame.transform.scale(case_image, (125, 80))
 
+        door_image = load_image("door.png")
+        door_image = pygame.transform.scale(door_image, (125, 80))
+
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
+
+        # Создаем объект двери и привязываем к ней функцию по клику
+        door_object = RoomObject(door_image, (400, 320))
+        door_object.click_hook = self.click_door
 
         # Создаем кусочек картинки 3
         paper_piece3 = RoomObject(pygame.transform.rotate(paper_image, 90), (720, 220))
@@ -157,6 +164,15 @@ class QuestRoom(Room):
         case_object.original_image = case_image
 
         self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, wall=3)
+
+    def click_door(self, obj, width, height):
+        self.door_object = pygame.Surface((width, height), pygame.SRCALPHA, 32)
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он ключом
+        if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "Ключ":
+            # Если да, то удаляем ключ из инвентаря
+            self.inventory.remove_selected()
+            obj.storage['has_key'] = True
+            pygame.quit()
 
     def click_case(self, obj, pos):
         """Обработчик клика по шкатулке"""
