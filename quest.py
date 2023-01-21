@@ -3,7 +3,7 @@ import pygame
 from inventory import Item
 from room import Room, RoomObject
 from ui import apply_ui
-from utils import load_image, load_music
+from utils import load_image, load_music, load_font
 from typing import Tuple, Union
 from pygame.surface import SurfaceType
 
@@ -18,6 +18,9 @@ class QuestRoom(Room):
 
         # Применение интерфейса к комнате
         apply_ui(self)
+
+        # Создание переменных
+        self.font = load_font("arkhip.ttf", 12)
 
         # Добавление объектов
         self.apply_objects()
@@ -52,7 +55,7 @@ class QuestRoom(Room):
         book4_image = load_image("book4.png")
         book4_image = pygame.transform.scale(book4_image, (33, 65))
 
-        solved_book_image = load_image("alyonka_solved.png")
+        solved_book_image = load_image("number_three.png")
         solved_book_image = pygame.transform.scale(solved_book_image, (80, 80))
 
         matryoshka_top_image = load_image("matryoshka_top.png")
@@ -81,25 +84,9 @@ class QuestRoom(Room):
         case_image = load_image("case.png")
         case_image = pygame.transform.scale(case_image, (125, 80))
 
-        key_image = load_image("key.png")
-        key_image = pygame.transform.scale(key_image, (80, 80))
-
-        number_one_image = load_image("number_one.png")
-        number_one_image = pygame.transform.scale(number_one_image, (50, 70))
-
-        number_two_image = load_image("number_two.png")
-        number_two_image = pygame.transform.scale(number_two_image, (50, 70))
-
-        number_three_image = load_image("number_three.png")
-        number_three_image = pygame.transform.scale(number_three_image, (50, 70))
-
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
-
-        # Создаем объект чая и привязываем к нему функцию
-        key_object = RoomObject(key_image, (80, 80))
-        key_object.click_hook = self.click_case_2()
 
         # Создаем кусочек картинки 3
         paper_piece3 = RoomObject(pygame.transform.rotate(paper_image, 90), (720, 220))
@@ -158,108 +145,57 @@ class QuestRoom(Room):
         paper_piece2.update_hook = self.update_piece
         paper_piece2.click_hook = self.get_piece_click_handler(2)
 
-        # Создаем объект первой карточки и привязываем к нему функцию по клику
-        number_one_object = RoomObject(number_one_image, (400, 320))
-        number_one_object.click_hook = self.click_number_one
-
-        # Создаем объект второй карточки и привязываем к нему функцию по клику
-        number_two_object = RoomObject(number_two_image, (500, 320))
-        number_two_object.click_hook = self.click_number_two
-
-        # Создаем объект третьей карточки и привязываем к нему функцию по клику
-        number_three_object = RoomObject(number_three_image, (600, 320))
-        number_three_object.click_hook = self.click_number_three
-
         # Создаем объект шкатулки и привязываем к нему функцию по клику
         case_object = RoomObject(case_image, (300, 370))
         case_object.click_hook = self.click_case
+        case_object.update_hook = self.update_case
+        case_object.storage = {
+            'first_digit': 0,
+            'second_digit': 0,
+            'third_digit': 0
+        }
+        case_object.original_image = case_image
 
-        self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, number_one_object, number_two_object, number_three_object, wall=3)
+        self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, wall=3)
 
-    def click_number_one(self, obj, *_):
-        """Обработчик клика по карточке с номером 1"""
-
-        # Проверяем брали ли мы уже карточку
-        if 'used' in obj.storage:
-            # Если да, то ничего не делаем
-            return
-
-        # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_one", "Карточка", load_image("number_one.png")))
-
-        # Удаляем картинку карточки
-        obj.image = pygame.Surface((0, 0))
-
-        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
-        obj.storage['used'] = True
-
-    def click_number_two(self, obj, *_):
-        """Обработчик клика по карточке с номером 2"""
-
-        # Проверяем брали ли мы уже карточку
-        if 'used' in obj.storage:
-            # Если да, то ничего не делаем
-            return
-
-        # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_two", "Карточка", load_image("number_two.png")))
-
-        # Удаляем картинку карточки
-        obj.image = pygame.Surface((0, 0))
-
-        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
-        obj.storage['used'] = True
-
-    def click_number_three(self, obj, *_):
-        """Обработчик клика по карточке с номером 3"""
-
-        # Проверяем брали ли мы уже карточку
-        if 'used' in obj.storage:
-            # Если да, то ничего не делаем
-            return
-
-        # Добавляем карточку в инвентарь
-        self.inventory.add(Item("number_three", "Карточка", load_image("number_three.png")))
-
-        # Удаляем картинку карточки
-        obj.image = pygame.Surface((0, 0))
-
-        # Добавляем в хранилище объекта информацию о том, что этот объект уже брали
-        obj.storage['used'] = True
-
-    def click_case(self, obj, *_):
+    def click_case(self, obj, pos):
         """Обработчик клика по шкатулке"""
 
-        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 1
-        if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_one":
-            # Если да, то удаляем объект из инвентаря
-            self.inventory.remove_selected()
-            print("карточка 1 взята")
-            # И сохраняем информацию о том, что карточку положили в шкатулку
-            obj.storage['has_number_one'] = True
+        if 'opened' in obj.storage:
+            # Если шкатулка открыта, то игнорируем клик
+            return
 
-        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 2
-        elif self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_two":
-            # Если да, то удаляем объект из инвентаря
-            self.inventory.remove_selected()
-            print("карточка 2 взята")
-            # И сохраняем информацию о том, что карточку положили в шкатулку
-            obj.storage['has_number_two'] = True
+        if 265 < pos[0] < 275 and 350 < pos[1] < 365:
+            # Если кликнули по полю для первой цифры кода
+            obj.storage['first_digit'] += 1
+            obj.storage['first_digit'] %= 10
+        elif 295 < pos[0] < 310 and 350 < pos[1] < 365:
+            # Если кликнули по полю для второй цифры кода
+            obj.storage['second_digit'] += 1
+            obj.storage['second_digit'] %= 10
+        elif 328 < pos[0] < 345 and 350 < pos[1] < 365:
+            # Если кликнули по полю для третьей цифры кода
+            obj.storage['third_digit'] += 1
+            obj.storage['third_digit'] %= 10
 
-        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 3
-        elif self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_three":
-            # Если да, то удаляем объект из инвентаря
-            self.inventory.remove_selected()
-            print("карточка 3 взята")
-            # И сохраняем информацию о том, что чай карточку положили в шкатулку
-            obj.storage['has_number_three'] = True
+    def update_case(self, obj, dt):
+        """Обработчик обновления шкатулки"""
 
-    def click_case_2(self, obj, *_):
+        if 'opened' in obj.storage:
+            # Если шкатулка открыта, то игнорируем обновление
+            return
 
-        # проверяем, собраны ли все карточки
-        if 'has_number_one' in obj.storage and 'has_number_two' in obj.storage and 'has_number_three' in obj.storage:
-            obj.image = pygame.Surface((0, 0))
+        # Проверяем правильность кода
+        if obj.storage['first_digit'] == 5 and obj.storage['second_digit'] == 3 and obj.storage['third_digit'] == 1:
+            # Добавляем ключ в инвентарь
+            self.inventory.add(Item('key', 'Ключ', load_image("key.png")))
+            obj.storage['opened'] = True
 
+        # Обновляем картинку шкатулки
+        obj.image = obj.original_image.copy()
+        obj.image.blit(self.font.render(str(obj.storage['first_digit']), True, (0, 0, 0)), (28, 20))
+        obj.image.blit(self.font.render(str(obj.storage['second_digit']), True, (0, 0, 0)), (60, 18))
+        obj.image.blit(self.font.render(str(obj.storage['third_digit']), True, (0, 0, 0)), (93, 22))
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
