@@ -38,7 +38,7 @@ class QuestRoom(Room):
         tea_image = pygame.transform.scale(tea_image, (100, 67))
 
         cup_image = load_image("cup.png")
-        cup_image = pygame.transform.scale(cup_image, (100, 72))
+        cup_image = pygame.transform.scale(cup_image, (50, 36))
 
         book1_image = load_image("book1.png")
         book1_image = pygame.transform.scale(book1_image, (25, 67))
@@ -53,7 +53,7 @@ class QuestRoom(Room):
         book4_image = pygame.transform.scale(book4_image, (33, 65))
 
         solved_book_image = load_image("alyonka_solved.png")
-        solved_book_image = pygame.transform.scale(solved_book_image, (150, 80))
+        solved_book_image = pygame.transform.scale(solved_book_image, (80, 80))
 
         matryoshka_top_image = load_image("matryoshka_top.png")
         matryoshka_top_image = pygame.transform.scale(matryoshka_top_image, (32, 32))
@@ -79,7 +79,7 @@ class QuestRoom(Room):
         fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, piece_size)
 
         case_image = load_image("case.png")
-        case_image = pygame.transform.scale(case_image, (250, 161))
+        case_image = pygame.transform.scale(case_image, (125, 80))
 
         number_one_image = load_image("number_one.png")
         number_one_image = pygame.transform.scale(number_one_image, (50, 70))
@@ -103,7 +103,7 @@ class QuestRoom(Room):
         self.add_objects(tea_object, paper_piece3, wall=0)
 
         # Создаем кусочек картинки 4
-        paper_piece4 = RoomObject(pygame.transform.rotate(paper_image, 90), (100, 400))
+        paper_piece4 = RoomObject(pygame.transform.rotate(paper_image, 90), (600, 400))
         paper_piece4.update_hook = self.update_piece
         paper_piece4.click_hook = self.get_piece_click_handler(4)
 
@@ -130,14 +130,14 @@ class QuestRoom(Room):
         self.add_objects(lamp, frame_of_picture_obj, wall=2)
 
         # Создаем объект чашки и привязываем к нему функцию по клику
-        cup_object = RoomObject(cup_image, (400, 370))
+        cup_object = RoomObject(cup_image, (420, 385))
         cup_object.click_hook = self.click_cup
 
         # Создаем объект книг
         book_puzzle = BookPuzzle([
-            (3, book1_image),
-            (1, book2_image),
-            (2, book3_image),
+            (2, book1_image),
+            (3, book2_image),
+            (1, book3_image),
             (0, book4_image),
         ], solved_book_image, (320, 295))
 
@@ -164,7 +164,7 @@ class QuestRoom(Room):
         number_three_object.click_hook = self.click_number_three
 
         # Создаем объект шкатулки и привязываем к нему функцию по клику
-        case_object = RoomObject(case_image, (300, 320))
+        case_object = RoomObject(case_image, (300, 370))
         case_object.click_hook = self.click_case
 
         self.add_objects(cup_object, book_puzzle, paper_piece2, matryoshka_top, matryoshka_bottom, case_object, number_one_object, number_two_object, number_three_object, wall=3)
@@ -427,6 +427,7 @@ class BookPuzzle(RoomObject):
                 self.grabbed_book = None
                 self.grabbed_book_offset = None
                 sorted_books[0].image = self.solved_image
+                sorted_books[0].rect.width = self.solved_image.get_width()
 
             # Обновляем позиции книг на основе их порядка
             x = 0
@@ -434,6 +435,7 @@ class BookPuzzle(RoomObject):
                 if book != self.grabbed_book:
                     book.rect.x = x
                 x += book.rect.width
+            self.image = pygame.Surface((x, self.image.get_height()), pygame.SRCALPHA, 32)
 
         # Очищаем поверхность прозрачным цветом
         self.image.fill((0, 0, 0, 0))
