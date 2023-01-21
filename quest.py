@@ -81,6 +81,9 @@ class QuestRoom(Room):
         case_image = load_image("case.png")
         case_image = pygame.transform.scale(case_image, (125, 80))
 
+        key_image = load_image("key.png")
+        key_image = pygame.transform.scale(key_image, (80, 80))
+
         number_one_image = load_image("number_one.png")
         number_one_image = pygame.transform.scale(number_one_image, (50, 70))
 
@@ -93,6 +96,10 @@ class QuestRoom(Room):
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
+
+        # Создаем объект чая и привязываем к нему функцию
+        key_object = RoomObject(key_image, (80, 80))
+        key_object.click_hook = self.click_case_2()
 
         # Создаем кусочек картинки 3
         paper_piece3 = RoomObject(pygame.transform.rotate(paper_image, 90), (720, 220))
@@ -204,7 +211,7 @@ class QuestRoom(Room):
         obj.storage['used'] = True
 
     def click_number_three(self, obj, *_):
-        """Обработчик клика по карточке с номером 1"""
+        """Обработчик клика по карточке с номером 3"""
 
         # Проверяем брали ли мы уже карточку
         if 'used' in obj.storage:
@@ -223,8 +230,36 @@ class QuestRoom(Room):
     def click_case(self, obj, *_):
         """Обработчик клика по шкатулке"""
 
-        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он шкатулкой
-        pass
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 1
+        if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_one":
+            # Если да, то удаляем объект из инвентаря
+            self.inventory.remove_selected()
+            print("карточка 1 взята")
+            # И сохраняем информацию о том, что карточку положили в шкатулку
+            obj.storage['has_number_one'] = True
+
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 2
+        elif self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_two":
+            # Если да, то удаляем объект из инвентаря
+            self.inventory.remove_selected()
+            print("карточка 2 взята")
+            # И сохраняем информацию о том, что карточку положили в шкатулку
+            obj.storage['has_number_two'] = True
+
+        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он карточкой 3
+        elif self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "number_three":
+            # Если да, то удаляем объект из инвентаря
+            self.inventory.remove_selected()
+            print("карточка 3 взята")
+            # И сохраняем информацию о том, что чай карточку положили в шкатулку
+            obj.storage['has_number_three'] = True
+
+    def click_case_2(self, obj, *_):
+
+        # проверяем, собраны ли все карточки
+        if 'has_number_one' in obj.storage and 'has_number_two' in obj.storage and 'has_number_three' in obj.storage:
+            obj.image = pygame.Surface((0, 0))
+
 
     def click_tea(self, obj, *_):
         """Обработчик клика по чаю"""
