@@ -90,9 +90,22 @@ class QuestRoom(Room):
         door_image = load_image("door.png")
         door_image = pygame.transform.scale(door_image, (376 * 0.83, 657 * 0.83))
 
+        teapot_image = pygame.surface.Surface((50, 50))  # Заглушка
+        teapot_image.fill((255, 255, 255))
+
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
+
+        # Создаём прозрачный объект раковины
+        sink_image = pygame.surface.Surface((150, 50), pygame.SRCALPHA, 32)
+        sink_image.fill((255, 255, 255, 0))
+        sink_object = RoomObject(sink_image, (550, 320))
+        sink_object.click_hook = self.click_sink
+
+        # Создаем объект чайника и привязываем к нему функцию по клику
+        teapot_object = RoomObject(teapot_image, (200, 300))
+        teapot_object.click_hook = self.click_teapot
 
         # Создаем кусочек картинки 3
         paper_piece3 = RoomObject(pygame.transform.rotate(paper_image, 90), (720, 220))
@@ -100,7 +113,7 @@ class QuestRoom(Room):
         paper_piece3.click_hook = self.get_piece_click_handler(3)
 
         # Добавляем объекты в комнату на стену 0 (переднюю)
-        self.add_objects(tea_object, paper_piece3, wall=0)
+        self.add_objects(tea_object, paper_piece3, teapot_object, sink_object, wall=0)
 
         # Создаем кусочек картинки 4
         paper_piece4 = RoomObject(pygame.transform.rotate(paper_image, 90), (600, 400))
@@ -245,13 +258,57 @@ class QuestRoom(Room):
     def click_cup(self, obj, *_):
         """Обработчик клика по чашке"""
 
-        # Проверяем выделен ли какой-то предмет в инвентаре и является ли он чаем
-        if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "tea":
-            # Если да, то удаляем чай из инвентаря
-            self.inventory.remove_selected()
-            print("Чай налит в чашку")
-            # И сохраняем информацию о том, что чай налит в чашку
-            obj.storage['has_tea'] = True
+        if obj.storage.get('drunk', False):
+            # Если чай уже выпит, то даём подсказку
+            self.text_overlay.display("Остатки чая сложились в форму надписи «1 III»?!")
+            return
+
+        if obj.storage.get('has_tea', False) and obj.storage.get('has_water', False):
+            # Если чай приготовлен, то пьём его
+            self.text_overlay.display("Вы выпили чай")
+            obj.storage['drunk'] = True
+            return
+
+        # Проверяем выделен ли какой-то предмет в инвентаре
+        if self.inventory.get_selected() is not None:
+            # Если да, то проверяем, что это чай
+            if self.inventory.get_selected().uid == "tea":
+                # Если да, то удаляем чай из инвентаря
+                self.inventory.remove_selected()
+
+                # И сохраняем информацию о том, что чай налит в чашку
+                obj.storage['has_tea'] = True
+                self.text_overlay.display("Вы положили пакетик чая в чашку")
+            # Или проверяем, что это наполненный чайник
+            elif self.inventory.get_selected().uid == "filled_teapot":
+                # Если да, то удаляем чайник из инвентаря
+                self.inventory.remove_selected()
+
+                # И сохраняем информацию о том, что вода налита в чашку
+                obj.storage['has_water'] = True
+                self.text_overlay.display("Вы налили воду в чашку")
+            # Если чайник не налит, то даём подсказку
+            elif self.inventory.get_selected().uid == "teapot":
+                self.text_overlay.display("Чайник пуст")
+
+    def click_sink(self, *_):
+        """Обработчик клика по раковине"""
+
+        s = self.inventory.get_selected()
+
+        # Проверяем выделен ли какой-то предмет в инвентаре
+        if s is not None:
+            # Если да, то проверяем, что это пустой чайник
+            if s.uid == "teapot":
+                # Если да, то удаляем чайник из инвентаря
+                self.inventory.remove_selected()
+
+                # И добавляем наполненный чайник в инвентарь
+                self.inventory.add(Item("filled_teapot", "Наполненный чайник", s.image))
+                self.text_overlay.display("Вы наполнили чайник водой")
+            # Если чайник не пуст, то даём подсказку
+            elif s.uid == "filled_teapot":
+                self.text_overlay.display("Чайник уже наполнен")
 
     def click_lamp(self, obj, pos):
         """Обработчик клика по лампе"""
@@ -377,6 +434,18 @@ class QuestRoom(Room):
             obj.image.blit(obj.pieces[2], (0, obj.pieces[0].get_height()))
         if obj.storage.get('piece_4', False):
             obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
+
+    def click_teapot(self, obj, pos):
+        """Обработчик клика по чайнику"""
+
+        # Если чайник не был взят
+        if not obj.storage.get('taken', False):
+            # Добавляем чайник в инвентарь
+            self.inventory.add(Item("teapot", "Пустой чайник", obj.image))
+            # Устанавливаем флаг, что чайник был взят
+            obj.storage['taken'] = True
+            # Убираем текстуру чайника
+            obj.image = pygame.Surface((0, 0))
 
 
 class BookPuzzle(RoomObject):

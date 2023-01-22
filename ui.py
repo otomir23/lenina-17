@@ -11,15 +11,15 @@ class TextOverlay(RoomObject):
     def __init__(self):
         """Создание оверлея с текстом"""
 
-        self.font = load_font("arkhip.ttf", 12)
-        self.surface = pygame.Surface((1280, 24))
+        self.font = load_font("arkhip.ttf", 24)
+        self.surface = pygame.Surface((1280, 48))
         self.surface.fill((0, 0, 0))
         self.surface.set_alpha(0)
         self.alpha = 0
         self.alpha_speed = 0
         self.alpha_target = 0
 
-        super().__init__(self.surface, (640, 12))
+        super().__init__(self.surface, (640, 24))
 
         self.passthrough = True
 
@@ -49,9 +49,9 @@ class TextOverlay(RoomObject):
         """Запуск анимации перехода"""
 
         self.alpha_speed = 255 * 6
-        self.alpha_target = 255 * 3
+        self.alpha_target = 255 * 6
         self.surface.fill((0, 0, 0))
-        self.surface.blit(self.font.render(text, True, (255, 255, 255)), (4, 4))
+        self.surface.blit(self.font.render(text, True, (255, 255, 255)), (8, 8))
 
 
 class InventoryUI(RoomObject):
