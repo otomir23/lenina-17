@@ -1,6 +1,7 @@
+import sys
+
 import pygame
 
-from inventory import Inventory
 from room import RoomObject, Room
 from utils import load_image, load_font
 
@@ -57,19 +58,19 @@ class TextOverlay(RoomObject):
 class InventoryUI(RoomObject):
     """Интерфейс инвентаря"""
 
-    def __init__(self, inventory: Inventory, text_overlay: TextOverlay):
+    def __init__(self, room: Room):
         """Создание интерфейса инвентаря
 
-        :param inventory: инвентарь"""
+        :param room: комната, в которой находится игрок"""
 
         self.width = 96
         self.height = 720
         self.x = 1280 - self.width / 2
         self.y = self.height / 2
         self.surface = pygame.Surface((self.width, self.height))
-        self.inventory = inventory
+        self.inventory = room.inventory
+        self.room = room
         self.cell_size = self.height / self.inventory.size - 16
-        self.text_overlay = text_overlay
 
         super().__init__(self.surface, (self.x, self.y))
 
@@ -106,7 +107,7 @@ class InventoryUI(RoomObject):
                 self.inventory.select(i)
                 s = self.inventory.get_selected()
                 if s is not None:
-                    self.text_overlay.display(s.name)
+                    self.room.send_message("text", s.name)
 
 
 class TransitionOverlay(RoomObject):
@@ -163,6 +164,106 @@ class TransitionOverlay(RoomObject):
         self.passthrough = False
 
 
+class PauseMenu(RoomObject):
+    """Меню паузы"""
+
+    def __init__(self):
+        """Создание меню паузы"""
+
+        self.surface = pygame.Surface((1280, 720), pygame.SRCALPHA, 32)
+        self.surface.fill((0, 0, 0, 172))
+        self.surface.set_alpha(0)
+
+        # Заголовок
+        self.surface.blit(load_font("arkhip.ttf", 64).render("Пауза", True, (255, 255, 255)), (140, 180))
+
+        # Кнопки
+        f = load_font("arkhip.ttf", 24)
+        self.buttons = []
+
+        for i, b in enumerate([
+            "Продолжить",
+            "Громкость музыки",
+            "Громкость звуков",
+            "Выйти"
+        ]):
+            pos = (140, 270 + i * 30)
+            img = f.render(b, True, (255, 255, 255))
+            self.surface.blit(img, pos)
+            self.buttons.append((b, pos, img))
+
+        # Остальные параметры
+        super().__init__(self.surface, (640, 360))
+
+        self.visible = False
+        self.passthrough = True
+
+    def toggle(self):
+        """Переключение видимости меню паузы"""
+
+        self.visible = not self.visible
+        self.passthrough = not self.visible
+        self.surface.set_alpha(255 if self.visible else 0)
+        self.room.paused = self.visible
+
+    def click(self, pos: tuple[int, int]):
+        """Обработка клика по меню паузы
+
+        :param pos: позиция клика"""
+
+        if not self.visible:
+            return
+
+        for b, p, i in self.buttons:
+            if i.get_rect(topleft=p).collidepoint(pos):
+                if b == "Продолжить":
+                    self.toggle()
+                elif b == "Громкость музыки":
+                    pygame.mixer.music.set_volume((pygame.mixer.music.get_volume() + 0.1) % 1)
+                elif b == "Громкость звуков":
+                    self.room.channel.set_volume((self.room.channel.get_volume() + 0.1) % 1)
+                elif b == "Выйти":
+                    pygame.quit()
+                    sys.exit()
+
+
+class CompletionUI(RoomObject):
+    def __init__(self):
+        """Создание интерфейса завершения комнаты"""
+
+        # Загрузка изображений
+        self.surface = pygame.Surface((1280, 720), pygame.SRCALPHA, 32)
+        self.surface.fill((0, 0, 0, 172))
+        self.surface.set_alpha(0)
+
+        # Остальные параметры
+        super().__init__(self.surface, (640, 360))
+
+        self.visible = False
+        self.passthrough = True
+        self.time = 0
+
+    def update(self, delta_time: float):
+        """Обновление интерфейса
+
+        :param delta_time: время, прошедшее с последнего обновления"""
+
+        self.time += delta_time
+
+    def complete(self):
+        """Завершение уровня"""
+
+        self.visible = True
+        self.passthrough = False
+        self.surface.set_alpha(255)
+
+        self.surface.blit(load_font("arkhip.ttf", 64).render("Комната пройдена", True, (255, 255, 255)), (140, 180))
+        self.surface.blit(load_font("arkhip.ttf", 24).render("Время: " + str(round(self.time, 2)) + " секунд", True, (255, 255, 255)), (140, 270))
+        self.surface.blit(load_font("arkhip.ttf", 24).render("Нажмите пробел, чтобы продолжить", True, (255, 255, 255)), (140, 300))
+
+        self.room.paused = True
+
+
 def apply_ui(room: Room):
     """Применение интерфейса
 
@@ -174,13 +275,39 @@ def apply_ui(room: Room):
 
     # Создания оверлея с текстом
     text_overlay = TextOverlay()
-    room.text_overlay = text_overlay
+    room.register_message_handler(lambda channel, text, *_:
+                                  text_overlay.display(str(text)) if (channel == "text") else None)
 
     # Создание инвентаря
-    inv_ui = InventoryUI(room.inventory, text_overlay)
+    inv_ui = InventoryUI(room)
+
+    # Создание меню паузы
+    pause_menu = PauseMenu()
+
+    def pause(channel, key, *_):
+        if channel == "key_down" and key == pygame.K_ESCAPE:
+            pause_menu.toggle()
+
+    room.register_message_handler(pause)
 
     # Создание оверлея перехода
     transition_overlay = TransitionOverlay(room)
+
+    def rotate(channel, key, *_):
+        if channel == "key_down" and transition_overlay.passthrough:
+            if key == pygame.K_LEFT:
+                transition_overlay.start(-1)
+            elif key == pygame.K_RIGHT:
+                transition_overlay.start(1)
+
+    room.register_message_handler(rotate)
+
+    # Создание оверлея завершения уровня
+    completion_ui = CompletionUI()
+    room.register_message_handler(lambda channel, *_: completion_ui.complete() if (channel == "complete") else None)
+    room.register_message_handler(lambda channel, key: exit(0) if (
+            channel == "key_down" and key == pygame.K_SPACE and completion_ui.visible
+    ) else None)
 
     # Создание стрелочки поворота против часовой стрелки
     left_arrow = RoomObject(arrow_image, (48, 360))
@@ -191,4 +318,4 @@ def apply_ui(room: Room):
     right_arrow.click_hook = lambda *_: transition_overlay.start(1)
 
     # Добавление объектов в оверлей
-    room.add_objects(transition_overlay, text_overlay, left_arrow, right_arrow, inv_ui)
+    room.add_objects(transition_overlay, text_overlay, left_arrow, right_arrow, inv_ui, pause_menu, completion_ui)

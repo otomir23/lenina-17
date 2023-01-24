@@ -26,13 +26,15 @@ class Item:
 class Inventory:
     """Инвентарь игрока"""
 
-    def __init__(self, size: int):
+    def __init__(self, size: int, room):
         """Создание инвентаря
 
-        :param size: максимальное количество предметов в инвентаре"""
+        :param size: максимальное количество предметов в инвентаре
+        :param room: комната, в которой находится игрок"""
         self.size = size
         self.items = []
         self.selected = None
+        self.room = room
 
         # Загружаем звуки
         self.__pickup_sound = load_sound("pickup.mp3")
@@ -47,7 +49,8 @@ class Inventory:
         if len(self.items) < self.size and self.get(item.uid) is None:
             # Если есть свободное место, то добавляем предмет
             self.items.append(item)
-            self.__pickup_sound.play()
+            self.room.channel.play(self.__pickup_sound)
+            self.room.send_message("text", f"Вы подобрали {item.name}")
 
     def remove(self, item_uid: str):
         """Удаление предмета из инвентаря
@@ -69,7 +72,7 @@ class Inventory:
         if self.selected is not None:
             self.items.pop(self.selected)
             self.selected = None
-            self.__drop_sound.play()
+            self.room.channel.play(self.__drop_sound)
 
     def get(self, item_uid: str) -> Item:
         """

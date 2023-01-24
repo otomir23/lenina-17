@@ -90,18 +90,33 @@ class QuestRoom(Room):
         door_image = load_image("door.png")
         door_image = pygame.transform.scale(door_image, (376 * 0.83, 657 * 0.83))
 
-        teapot_image = pygame.surface.Surface((50, 50))  # Заглушка
+        teapot_image = pygame.surface.Surface((50, 50))  # Заглушка TODO
         teapot_image.fill((255, 255, 255))
+
+        lamp_off_image = load_image("lamp_off.png")
+        lamp_off_image = pygame.transform.scale(lamp_off_image, (100, 150))
+
+        lamp_on_image = load_image("lamp_on.png")
+        lamp_on_image = pygame.transform.scale(lamp_on_image, (100, 150))
+
+        lamp_on_empty_image = load_image("lamp_on_empty.png")
+        lamp_on_empty_image = pygame.transform.scale(lamp_on_empty_image, (100, 150))
+
+        sink_on_image = load_image("kran_on.png")
+        sink_on_image = pygame.transform.scale(sink_on_image, (64, 75))
+
+        sink_off_image = load_image("kran_off.png")
+        sink_off_image = pygame.transform.scale(sink_off_image, (50, 75))
 
         # Создаем объект чая и привязываем к нему функцию по клику
         tea_object = RoomObject(tea_image, (400, 320))
         tea_object.click_hook = self.click_tea
 
         # Создаём прозрачный объект раковины
-        sink_image = pygame.surface.Surface((150, 50), pygame.SRCALPHA, 32)
-        sink_image.fill((255, 255, 255, 0))
-        sink_object = RoomObject(sink_image, (550, 320))
+        sink_object = RoomObject(sink_off_image, (560, 305))
         sink_object.click_hook = self.click_sink
+        sink_object.off_image = sink_off_image
+        sink_object.on_image = sink_on_image
 
         # Создаем объект чайника и привязываем к нему функцию по клику
         teapot_object = RoomObject(teapot_image, (200, 300))
@@ -124,8 +139,11 @@ class QuestRoom(Room):
         self.add_objects(paper_piece4, wall=1)
 
         # Создаем лампу
-        lamp = RoomObject(load_image("lamp_off.png"), (400, 300))
+        lamp = RoomObject(lamp_off_image, (1024, 300))
         lamp.click_hook = self.click_lamp
+        lamp.off_image = lamp_off_image
+        lamp.on_image = lamp_on_image
+        lamp.on_empty_image = lamp_on_empty_image
 
         # Создаём рамку
         frame_of_picture_obj = RoomObject(frame_of_picture, (600, 320))
@@ -191,13 +209,13 @@ class QuestRoom(Room):
             wall=3
         )
 
-    def click_door(self, obj, pos):
+    def click_door(self, obj, *_):
         # Проверяем выделен ли какой-то предмет в инвентаре и является ли он ключом
         if self.inventory.get_selected() is not None and self.inventory.get_selected().uid == "key":
             # Если да, то удаляем ключ из инвентаря
             self.inventory.remove_selected()
             obj.storage['has_key'] = True
-            exit(0)
+            self.send_message("complete", 0)
 
     def click_case(self, obj, pos):
         """Обработчик клика по шкатулке"""
@@ -219,7 +237,7 @@ class QuestRoom(Room):
             obj.storage['third_digit'] += 1
             obj.storage['third_digit'] %= 10
 
-    def update_case(self, obj, dt):
+    def update_case(self, obj, *_):
         """Обработчик обновления шкатулки"""
 
         if obj.storage.get('opened', False):
@@ -260,12 +278,12 @@ class QuestRoom(Room):
 
         if obj.storage.get('drunk', False):
             # Если чай уже выпит, то даём подсказку
-            self.text_overlay.display("Остатки чая сложились в форму надписи «1 III»?!")
+            self.send_message("text", "Остатки чая сложились в форму надписи «1 III»?!")
             return
 
         if obj.storage.get('has_tea', False) and obj.storage.get('has_water', False):
             # Если чай приготовлен, то пьём его
-            self.text_overlay.display("Вы выпили чай")
+            self.send_message("text", "Вы выпили чай")
             obj.storage['drunk'] = True
             return
 
@@ -278,7 +296,7 @@ class QuestRoom(Room):
 
                 # И сохраняем информацию о том, что чай налит в чашку
                 obj.storage['has_tea'] = True
-                self.text_overlay.display("Вы положили пакетик чая в чашку")
+                self.send_message("text", "Вы положили пакетик чая в чашку")
             # Или проверяем, что это наполненный чайник
             elif self.inventory.get_selected().uid == "filled_teapot":
                 # Если да, то удаляем чайник из инвентаря
@@ -286,15 +304,22 @@ class QuestRoom(Room):
 
                 # И сохраняем информацию о том, что вода налита в чашку
                 obj.storage['has_water'] = True
-                self.text_overlay.display("Вы налили воду в чашку")
+                self.send_message("text", "Вы налили воду в чашку")
             # Если чайник не налит, то даём подсказку
             elif self.inventory.get_selected().uid == "teapot":
-                self.text_overlay.display("Чайник пуст")
+                self.send_message("text", "Чайник пуст")
+        else:
+            self.send_message("text", "Для чая нужен пакетик чая и вода")
 
-    def click_sink(self, *_):
+    def click_sink(self, obj, *_):
         """Обработчик клика по раковине"""
 
         s = self.inventory.get_selected()
+
+        if not obj.storage.get('running', False):
+            obj.storage['running'] = True
+            obj.image = obj.on_image
+            return
 
         # Проверяем выделен ли какой-то предмет в инвентаре
         if s is not None:
@@ -305,31 +330,39 @@ class QuestRoom(Room):
 
                 # И добавляем наполненный чайник в инвентарь
                 self.inventory.add(Item("filled_teapot", "Наполненный чайник", s.image))
-                self.text_overlay.display("Вы наполнили чайник водой")
+                self.send_message("text", "Вы наполнили чайник водой")
             # Если чайник не пуст, то даём подсказку
             elif s.uid == "filled_teapot":
-                self.text_overlay.display("Чайник уже наполнен")
+                self.send_message("text", "Чайник уже наполнен")
+            else:
+                obj.storage['running'] = False
+                obj.image = obj.off_image
+        else:
+            obj.storage['running'] = False
+            obj.image = obj.off_image
 
     def click_lamp(self, obj, pos):
         """Обработчик клика по лампе"""
+
+        print(pos)
 
         # Сохраняем в переменную информацию о том, была ли лампа включена
         lamp_on = obj.storage.get('on', False)
 
         # Если мы нажали на верёвку лампы, то включаем/выключаем лампу
-        if 415 < pos[0] < 425 and 315 < pos[1] < 335:
+        if 1045 < pos[0] < 1060 and 325 < pos[1] < 365:
             if lamp_on:
-                obj.image = load_image("lamp_off.png")
+                obj.image = obj.off_image
                 obj.storage['on'] = False
             else:
-                obj.image = load_image("lamp_on_empty.png" if obj.storage.get('piece_taken', False) else "lamp_on.png")
+                obj.image = obj.on_empty_image if obj.storage.get('piece_taken', False) else obj.on_image
                 obj.storage['on'] = True
 
         # Если лампа включена и был нажат кусок картинки, то берём его
-        if lamp_on and not obj.storage.get('piece_taken', False) and 400 < pos[0] < 430 and 300 < pos[1] < 315:
+        if lamp_on and not obj.storage.get('piece_taken', False) and 1040 < pos[0] < 1065 and 290 < pos[1] < 320:
             self.inventory.add(Item("piece_1", "Кусочек картинки", load_image("paper.png")))
             obj.storage['piece_taken'] = True
-            obj.image = load_image("lamp_on_empty.png")
+            obj.image = obj.on_empty_image
 
     def click_matryoshka_top(self, obj, *_):
         """Обработчик клика по верхней части матрёшки"""
@@ -372,14 +405,14 @@ class QuestRoom(Room):
             self.inventory.add(Item(f"piece_{piece}", "Кусочек картинки", load_image("paper.png")))
         return click_piece
 
-    def update_piece(self, obj, dt):
+    def update_piece(self, obj, *_):
         """Обновление куска картинки"""
 
         # Если кусок картинки брали, то удаляем его
         if obj.storage.get('taken', False):
             obj.image = pygame.Surface((0, 0))
 
-    def click_frame(self, obj, pos):
+    def click_frame(self, obj, *_):
         """Обработчик клика по рамке"""
 
         # Если все куски вставлены, то переворачиваем картинку
@@ -414,7 +447,7 @@ class QuestRoom(Room):
             # Добавляем в хранилище объекта информацию о том, что кусок картинки вставлен
             obj.storage['piece_4'] = True
 
-    def update_frame(self, obj, dt):
+    def update_frame(self, obj, *_):
         """Обновление рамки"""
 
         if obj.storage.get('flipped', False):
@@ -435,7 +468,7 @@ class QuestRoom(Room):
         if obj.storage.get('piece_4', False):
             obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
 
-    def click_teapot(self, obj, pos):
+    def click_teapot(self, obj, *_):
         """Обработчик клика по чайнику"""
 
         # Если чайник не был взят

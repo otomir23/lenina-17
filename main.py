@@ -49,6 +49,9 @@ class Game:
             # Нажатие на кнопку мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.room.click(event.pos)
+            # Нажатие на клавишу
+            elif event.type == pygame.KEYDOWN:
+                self.room.key_down(event.key)
 
     def update(self):
         """Обновление состояния игры"""

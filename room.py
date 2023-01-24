@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from typing import Callable, Any
+
 import pygame
 from pygame.sprite import Sprite, Group
 
@@ -19,6 +22,8 @@ class Room:
     def __init__(self):
         """Создание комнаты"""
 
+        self.paused = False
+
         # Создание групп спрайтов для каждой стены
         self.walls = (
             Group(),
@@ -37,18 +42,25 @@ class Room:
         )
 
         # Создание инвентаря
-        self.inventory = Inventory(8)
+        self.inventory = Inventory(8, self)
+
+        # Создание списка обработчиков сообщений
+        self.message_handlers = []
 
         # Текущая стена, к которой повёрнут игрок
         self.current_wall = 0
 
         # Загрузка звуков
         self.__click_sound = load_sound("click.mp3")
+        self.channel = pygame.mixer.Channel(0)
 
     def update(self, delta_time: float):
         """Обновление объектов на текущей стене
 
         :param delta_time: время, прошедшее с последнего обновления"""
+
+        if self.paused:
+            return
 
         self.walls[self.current_wall].update(delta_time)
         self.overlays.update(delta_time)
@@ -82,10 +94,10 @@ class Room:
         for obj in [*self.overlays, *reversed([*self.walls[self.current_wall]])]:
             # Проверяем, находится ли позиция клика внутри объекта и можно ли с ним взаимодействовать
             if obj.rect.collidepoint(pos) and not obj.passthrough:
+                # Воспроизводим звук
+                self.channel.play(self.__click_sound)
                 # Вызываем обработчик клика
                 obj.click(pos)
-                # Воспроизводим звук
-                self.__click_sound.play()
                 break
 
     def add_objects(self, *objs: RoomObject, wall: int = None):
@@ -104,6 +116,26 @@ class Room:
         # Иначе добавляем объекты на указанную стену
         else:
             self.walls[wall % 4].add(*objs)
+
+    def register_message_handler(self, handler: Callable[[str, *Any], None]):
+        """Регистрация обработчика сообщений
+
+        :param handler: обработчик сообщений"""
+
+        self.message_handlers.append(handler)
+
+    def send_message(self, channel: str, *messages: Any):
+        """Отправка сообщения
+
+        :param channel: идентификатор канала
+        :param messages: сообщения"""
+
+        for handler in self.message_handlers:
+            handler(channel, *messages)
+
+    def key_down(self, key):
+        """Обработчик нажатия клавиши"""
+        self.send_message("key_down", key)
 
 
 class RoomObject(Sprite):
