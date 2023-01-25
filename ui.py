@@ -303,7 +303,7 @@ def apply_ui(room: Room):
     # Создание оверлея завершения уровня
     completion_ui = CompletionUI()
     room.register_message_handler(lambda channel, *_: completion_ui.complete() if (channel == "complete") else None)
-    room.register_message_handler(lambda channel, key: exit(0) if (
+    room.register_message_handler(lambda channel, key: sys.exit(0) if (
             channel == "key_down" and key == pygame.K_SPACE and completion_ui.visible
     ) else None)
 
