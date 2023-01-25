@@ -1,6 +1,7 @@
 import pygame
 import sys
 from quest import QuestRoom
+from utils import load_image
 
 
 class Game:
@@ -17,6 +18,7 @@ class Game:
         # Создание окна
         self.screen = pygame.display.set_mode((1086, 720))
         pygame.display.set_caption("Ленина, 17")
+        pygame.display.set_icon(load_image("teapot.png"))
 
         # Создание часов
         self.clock = pygame.time.Clock()
