@@ -15,7 +15,7 @@ class Game:
         pygame.init()
 
         # Создание окна
-        self.screen = pygame.display.set_mode((1280, 720))
+        self.screen = pygame.display.set_mode((1086, 720))
         pygame.display.set_caption("Ленина, 17")
 
         # Создание часов

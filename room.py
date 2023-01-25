@@ -97,7 +97,7 @@ class Room:
                 # Воспроизводим звук
                 self.channel.play(self.__click_sound)
                 # Вызываем обработчик клика
-                obj.click(pos)
+                obj.click((pos[0] - obj.rect.x, pos[1] - obj.rect.y))
                 break
 
     def add_objects(self, *objs: RoomObject, wall: int = None):

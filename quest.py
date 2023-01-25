@@ -64,10 +64,10 @@ class QuestRoom(Room):
         matryoshka_bottom_image = load_image("matryoshka_bottom.png")
         matryoshka_bottom_image = pygame.transform.scale(matryoshka_bottom_image, (32, 32))
 
-        frame_of_picture = load_image("frame.jpg")
-        frame_of_picture = pygame.transform.scale(frame_of_picture, (264, 150))
+        frame_of_picture = load_image("frame_2.png")
+        frame_of_picture = pygame.transform.scale(frame_of_picture, (280, 210))
 
-        piece_size = tuple(n / 2 for n in frame_of_picture.get_size())
+        piece_size = tuple(n / 2 for n in (215, 110))
 
         first_piece_of_picture = load_image("first_piece_of_picture.png")
         first_piece_of_picture = pygame.transform.scale(first_piece_of_picture, piece_size)
@@ -82,7 +82,7 @@ class QuestRoom(Room):
         fourth_piece_of_picture = pygame.transform.scale(fourth_piece_of_picture, piece_size)
 
         back_of_picture = load_image("number_five.png")
-        back_of_picture = pygame.transform.scale(back_of_picture, (264, 150))
+        back_of_picture = pygame.transform.scale(back_of_picture, (215, 110))
 
         case_image = load_image("case.png")
         case_image = pygame.transform.scale(case_image, (125, 80))
@@ -90,8 +90,8 @@ class QuestRoom(Room):
         door_image = load_image("door.png")
         door_image = pygame.transform.scale(door_image, (376 * 0.83, 657 * 0.83))
 
-        teapot_image = pygame.surface.Surface((50, 50))  # Заглушка TODO
-        teapot_image.fill((255, 255, 255))
+        teapot_image = load_image("teapot.png")
+        teapot_image = pygame.transform.scale(teapot_image, (100, 100))
 
         lamp_off_image = load_image("lamp_off.png")
         lamp_off_image = pygame.transform.scale(lamp_off_image, (100, 150))
@@ -119,7 +119,7 @@ class QuestRoom(Room):
         sink_object.on_image = sink_on_image
 
         # Создаем объект чайника и привязываем к нему функцию по клику
-        teapot_object = RoomObject(teapot_image, (200, 300))
+        teapot_object = RoomObject(teapot_image, (200, 290))
         teapot_object.click_hook = self.click_teapot
 
         # Создаем кусочек картинки 3
@@ -135,18 +135,8 @@ class QuestRoom(Room):
         paper_piece4.update_hook = self.update_piece
         paper_piece4.click_hook = self.get_piece_click_handler(4)
 
-        # Добавляем объекты в комнату на стену 1 (правую)
-        self.add_objects(paper_piece4, wall=1)
-
-        # Создаем лампу
-        lamp = RoomObject(lamp_off_image, (1024, 300))
-        lamp.click_hook = self.click_lamp
-        lamp.off_image = lamp_off_image
-        lamp.on_image = lamp_on_image
-        lamp.on_empty_image = lamp_on_empty_image
-
         # Создаём рамку
-        frame_of_picture_obj = RoomObject(frame_of_picture, (600, 320))
+        frame_of_picture_obj = RoomObject(frame_of_picture, (800, 260))
         frame_of_picture_obj.click_hook = self.click_frame
         frame_of_picture_obj.update_hook = self.update_frame
         frame_of_picture_obj.frame = frame_of_picture
@@ -158,8 +148,29 @@ class QuestRoom(Room):
             fourth_piece_of_picture
         ]
 
+        # Добавляем объекты в комнату на стену 1 (правую)
+        self.add_objects(paper_piece4, frame_of_picture_obj, wall=1)
+
+        # Создаем лампу
+        lamp = RoomObject(lamp_off_image, (864, 300))
+        lamp.click_hook = self.click_lamp
+        lamp.off_image = lamp_off_image
+        lamp.on_image = lamp_on_image
+        lamp.on_empty_image = lamp_on_empty_image
+
+        # Создаем объект шкатулки и привязываем к нему функцию по клику
+        case_object = RoomObject(case_image, (620, 375))
+        case_object.click_hook = self.click_case
+        case_object.update_hook = self.update_case
+        case_object.storage = {
+            'first_digit': 0,
+            'second_digit': 0,
+            'third_digit': 0
+        }
+        case_object.original_image = case_image
+
         # Добавляем объекты на стену 2 по часовой стрелке (заднюю)
-        self.add_objects(lamp, frame_of_picture_obj, wall=2)
+        self.add_objects(lamp, case_object, wall=2)
 
         # Создаем объект чашки и привязываем к нему функцию по клику
         cup_object = RoomObject(cup_image, (420, 385))
@@ -183,17 +194,6 @@ class QuestRoom(Room):
         paper_piece2.update_hook = self.update_piece
         paper_piece2.click_hook = self.get_piece_click_handler(2)
 
-        # Создаем объект шкатулки и привязываем к нему функцию по клику
-        case_object = RoomObject(case_image, (300, 370))
-        case_object.click_hook = self.click_case
-        case_object.update_hook = self.update_case
-        case_object.storage = {
-            'first_digit': 0,
-            'second_digit': 0,
-            'third_digit': 0
-        }
-        case_object.original_image = case_image
-
         # Создаем объект двери и привязываем к ней функцию по клику
         door_object = RoomObject(door_image, (765, 359))
         door_object.click_hook = self.click_door
@@ -204,7 +204,6 @@ class QuestRoom(Room):
             paper_piece2,
             matryoshka_top,
             matryoshka_bottom,
-            case_object,
             door_object,
             wall=3
         )
@@ -224,15 +223,15 @@ class QuestRoom(Room):
             # Если шкатулка открыта, то игнорируем клик
             return
 
-        if 265 < pos[0] < 275 and 350 < pos[1] < 365:
+        if 25 < pos[0] < 40 and 20 < pos[1] < 35:
             # Если кликнули по полю для первой цифры кода
             obj.storage['first_digit'] += 1
             obj.storage['first_digit'] %= 10
-        elif 295 < pos[0] < 310 and 350 < pos[1] < 365:
+        elif 55 < pos[0] < 70 and 20 < pos[1] < 35:
             # Если кликнули по полю для второй цифры кода
             obj.storage['second_digit'] += 1
             obj.storage['second_digit'] %= 10
-        elif 328 < pos[0] < 345 and 350 < pos[1] < 365:
+        elif 90 < pos[0] < 105 and 20 < pos[1] < 35:
             # Если кликнули по полю для третьей цифры кода
             obj.storage['third_digit'] += 1
             obj.storage['third_digit'] %= 10
@@ -344,13 +343,11 @@ class QuestRoom(Room):
     def click_lamp(self, obj, pos):
         """Обработчик клика по лампе"""
 
-        print(pos)
-
         # Сохраняем в переменную информацию о том, была ли лампа включена
         lamp_on = obj.storage.get('on', False)
 
         # Если мы нажали на верёвку лампы, то включаем/выключаем лампу
-        if 1045 < pos[0] < 1060 and 325 < pos[1] < 365:
+        if 70 < pos[0] < 90 and 100 < pos[1] < 140:
             if lamp_on:
                 obj.image = obj.off_image
                 obj.storage['on'] = False
@@ -359,7 +356,7 @@ class QuestRoom(Room):
                 obj.storage['on'] = True
 
         # Если лампа включена и был нажат кусок картинки, то берём его
-        if lamp_on and not obj.storage.get('piece_taken', False) and 1040 < pos[0] < 1065 and 290 < pos[1] < 320:
+        if lamp_on and not obj.storage.get('piece_taken', False) and 65 < pos[0] < 95 and 65 < pos[1] < 95:
             self.inventory.add(Item("piece_1", "Кусочек картинки", load_image("paper.png")))
             obj.storage['piece_taken'] = True
             obj.image = obj.on_empty_image
@@ -450,23 +447,25 @@ class QuestRoom(Room):
     def update_frame(self, obj, *_):
         """Обновление рамки"""
 
-        if obj.storage.get('flipped', False):
-            # Если картинка перевернута, то рисуем ее
-            obj.image = obj.flipped
-            return
+        tl = (34, 75)
 
         # Сбрасываем изображение рамки
         obj.image = obj.frame
 
+        if obj.storage.get('flipped', False):
+            # Если картинка перевернута, то рисуем ее
+            obj.image.blit(obj.flipped, tl)
+            return
+
         # Рисуем куски, которые вставлены в рамку
         if obj.storage.get('piece_1', False):
-            obj.image.blit(obj.pieces[0], (0, 0))
+            obj.image.blit(obj.pieces[0], tl)
         if obj.storage.get('piece_2', False):
-            obj.image.blit(obj.pieces[1], (obj.pieces[0].get_width(), 0))
+            obj.image.blit(obj.pieces[1], (tl[0] + obj.pieces[0].get_width(), tl[1]))
         if obj.storage.get('piece_3', False):
-            obj.image.blit(obj.pieces[2], (0, obj.pieces[0].get_height()))
+            obj.image.blit(obj.pieces[2], (tl[0], tl[1] + obj.pieces[0].get_height()))
         if obj.storage.get('piece_4', False):
-            obj.image.blit(obj.pieces[3], (obj.pieces[0].get_width(), obj.pieces[0].get_height()))
+            obj.image.blit(obj.pieces[3], (tl[0] + obj.pieces[0].get_width(), tl[1] + obj.pieces[0].get_height()))
 
     def click_teapot(self, obj, *_):
         """Обработчик клика по чайнику"""

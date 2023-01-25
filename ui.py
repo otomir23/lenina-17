@@ -13,14 +13,14 @@ class TextOverlay(RoomObject):
         """Создание оверлея с текстом"""
 
         self.font = load_font("arkhip.ttf", 24)
-        self.surface = pygame.Surface((1280, 48))
+        self.surface = pygame.Surface((1086, 48))
         self.surface.fill((0, 0, 0))
         self.surface.set_alpha(0)
         self.alpha = 0
         self.alpha_speed = 0
         self.alpha_target = 0
 
-        super().__init__(self.surface, (640, 24))
+        super().__init__(self.surface, (543, 24))
 
         self.passthrough = True
 
@@ -65,7 +65,7 @@ class InventoryUI(RoomObject):
 
         self.width = 96
         self.height = 720
-        self.x = 1280 - self.width / 2
+        self.x = 1086 - self.width / 2
         self.y = self.height / 2
         self.surface = pygame.Surface((self.width, self.height))
         self.inventory = room.inventory
@@ -96,8 +96,6 @@ class InventoryUI(RoomObject):
 
         :param pos: координаты клика"""
 
-        pos = (pos[0] - self.x + self.width / 2, pos[1] - self.y + self.height / 2)
-
         # Перебираем все предметы в инвентаре
         for i, item in enumerate(self.inventory.items):
             # Если клик был по ячейке
@@ -119,7 +117,7 @@ class TransitionOverlay(RoomObject):
         :param room: комната в которой будет отрисован оверлей"""
 
         self.room = room
-        self.surface = pygame.Surface((1280, 720))
+        self.surface = pygame.Surface((1086, 720))
         self.surface.fill((0, 0, 0))
         self.surface.set_alpha(0)
         self.alpha = 0
@@ -127,7 +125,7 @@ class TransitionOverlay(RoomObject):
         self.alpha_target = 0
         self.rotation_target = 0
 
-        super().__init__(self.surface, (640, 360))
+        super().__init__(self.surface, (543, 360))
 
         self.passthrough = True
 
@@ -170,7 +168,7 @@ class PauseMenu(RoomObject):
     def __init__(self):
         """Создание меню паузы"""
 
-        self.surface = pygame.Surface((1280, 720), pygame.SRCALPHA, 32)
+        self.surface = pygame.Surface((1086, 720), pygame.SRCALPHA, 32)
         self.surface.fill((0, 0, 0, 172))
         self.surface.set_alpha(0)
 
@@ -193,7 +191,7 @@ class PauseMenu(RoomObject):
             self.buttons.append((b, pos, img))
 
         # Остальные параметры
-        super().__init__(self.surface, (640, 360))
+        super().__init__(self.surface, (543, 360))
 
         self.visible = False
         self.passthrough = True
@@ -232,12 +230,12 @@ class CompletionUI(RoomObject):
         """Создание интерфейса завершения комнаты"""
 
         # Загрузка изображений
-        self.surface = pygame.Surface((1280, 720), pygame.SRCALPHA, 32)
+        self.surface = pygame.Surface((1086, 720), pygame.SRCALPHA, 32)
         self.surface.fill((0, 0, 0, 172))
         self.surface.set_alpha(0)
 
         # Остальные параметры
-        super().__init__(self.surface, (640, 360))
+        super().__init__(self.surface, (543, 360))
 
         self.visible = False
         self.passthrough = True
@@ -314,7 +312,7 @@ def apply_ui(room: Room):
     left_arrow.click_hook = lambda *_: transition_overlay.start(-1)
 
     # Создание стрелочки поворота по часовой стрелке
-    right_arrow = RoomObject(pygame.transform.flip(arrow_image, True, False), (1280 - inv_ui.width - 48, 360))
+    right_arrow = RoomObject(pygame.transform.flip(arrow_image, True, False), (1086 - inv_ui.width - 48, 360))
     right_arrow.click_hook = lambda *_: transition_overlay.start(1)
 
     # Добавление объектов в оверлей
